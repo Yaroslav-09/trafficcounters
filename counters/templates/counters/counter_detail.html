@@ -1,0 +1,58 @@
+{% extends 'counters/base.html' %}
+
+{% block title %}{{ counter.name }}{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div>
+        <h2 style="margin-bottom:4px;">{{ counter.name }}</h2>
+        {% if counter.address %}<div style="color:var(--muted); font-size:14px;">{{ counter.address }}</div>{% endif %}
+    </div>
+    <span class="badge {{ counter.status }}">{{ counter.get_status_display }}</span>
+</div>
+
+{% if counter.description %}
+<p style="margin-top:14px;">{{ counter.description }}</p>
+{% endif %}
+
+<p style="color:var(--muted); font-size:13px;">
+    Souřadnice: {{ counter.latitude }}, {{ counter.longitude }} ·
+    Přidáno: {{ counter.created_at|date:"d.m.Y H:i" }}
+</p>
+
+<form method="post" action="{% url 'counter_delete' counter.pk %}"
+      onsubmit="return confirm('Opravdu smazat toto počítadlo včetně historie?');" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" class="btn danger" style="margin-top:4px;">Smazat počítadlo</button>
+</form>
+
+<hr style="margin:24px 0; border:none; border-top:1px solid var(--border);">
+
+<h3>Změnit stav</h3>
+<form method="post">
+    {% csrf_token %}
+    {% for field in status_form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+            <div style="color:var(--red); font-size:12px; margin-top:4px;">{{ field.errors|striptags }}</div>
+        {% endif %}
+    {% endfor %}
+    <button type="submit" class="btn" style="margin-top:14px;">Uložit stav</button>
+</form>
+
+<hr style="margin:24px 0; border:none; border-top:1px solid var(--border);">
+
+<h3>Historie ({{ events|length }})</h3>
+{% if events %}
+    {% for event in events %}
+    <div class="event">
+        <span class="badge {{ event.status }}">{{ event.get_status_display }}</span>
+        <div class="meta">{{ event.created_at|date:"d.m.Y H:i" }}</div>
+        {% if event.note %}<div style="margin-top:4px;">{{ event.note }}</div>{% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+    <p style="color:var(--muted);">Zatím žádné události.</p>
+{% endif %}
+{% endblock %}

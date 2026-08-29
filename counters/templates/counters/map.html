@@ -1,0 +1,99 @@
+{% extends 'counters/base.html' %}
+{% load static %}
+
+{% block title %}Mapa počítadel{% endblock %}
+
+{% block full_content %}
+<div id="map" style="position:absolute; top:57px; left:0; right:0; bottom:0;"></div>
+
+<div id="toolbar" style="position:absolute; top:70px; left:12px; z-index:1000; display:flex; flex-direction:column; gap:8px;">
+    <button id="add-mode-btn" class="btn" style="box-shadow:0 2px 6px rgba(0,0,0,.15);">
+        ➕ Přidat počítadlo
+    </button>
+    <div id="add-hint" style="display:none; background:#fff; padding:8px 12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,.15); font-size:13px; max-width:220px;">
+        Klikněte na mapu na místě, kde je počítadlo umístěno.
+        <br><button id="cancel-add-mode" class="btn secondary" style="margin-top:6px; padding:4px 10px;">Zrušit</button>
+    </div>
+    <div style="background:#fff; padding:10px 12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,.15); font-size:12px;">
+        <div><span class="badge working">●</span> V provozu</div>
+        <div style="margin-top:4px;"><span class="badge defect">●</span> Porucha</div>
+        <div style="margin-top:4px;"><span class="badge disabled">●</span> Vypnuto</div>
+    </div>
+</div>
+
+{% if messages %}
+<div style="position:absolute; top:70px; right:12px; z-index:1000; max-width:280px;">
+    <ul class="messages" style="margin:0;">
+        {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<style>
+    html, body { height: 100%; }
+</style>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Výchozí střed mapy — Praha. Souřadnice lze změnit podle potřeby.
+    var map = L.map('map').setView([50.0755, 14.4378], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var addModeBtn = document.getElementById('add-mode-btn');
+    var addHint = document.getElementById('add-hint');
+    var cancelAddBtn = document.getElementById('cancel-add-mode');
+    var addMode = false;
+
+    function setAddMode(on) {
+        addMode = on;
+        addHint.style.display = on ? 'block' : 'none';
+        map.getContainer().style.cursor = on ? 'crosshair' : '';
+    }
+
+    addModeBtn.addEventListener('click', function () { setAddMode(true); });
+    cancelAddBtn.addEventListener('click', function () { setAddMode(false); });
+
+    map.on('click', function (e) {
+        if (!addMode) return;
+        var lat = e.latlng.lat.toFixed(6);
+        var lng = e.latlng.lng.toFixed(6);
+        window.location.href = "{% url 'counter_add' %}?lat=" + lat + "&lng=" + lng;
+    });
+
+    function loadCounters() {
+        fetch("{% url 'counters_json' %}")
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                data.counters.forEach(function (c) {
+                    var marker = L.circleMarker([c.lat, c.lng], {
+                        radius: 9,
+                        color: '#fff',
+                        weight: 2,
+                        fillColor: c.color,
+                        fillOpacity: 0.95
+                    }).addTo(map);
+
+                    var popupHtml =
+                        '<strong>' + c.name + '</strong><br>' +
+                        (c.address ? c.address + '<br>' : '') +
+                        'Stav: ' + c.status_display + '<br>' +
+                        '<a href="' + c.url + '">Otevřít detail →</a>';
+                    marker.bindPopup(popupHtml);
+                });
+            });
+    }
+
+    loadCounters();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'counters/base.html' %}
+
+{% block title %}Nové počítadlo{% endblock %}
+
+{% block content %}
+<h2>Nové počítadlo</h2>
+<p style="color:var(--muted); font-size:14px;">
+    Souřadnice jsou již vyplněny z mapy. Doplňte zbývající pole a uložte.
+</p>
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+            <div style="color:var(--red); font-size:12px; margin-top:4px;">{{ field.errors|striptags }}</div>
+        {% endif %}
+    {% endfor %}
+
+    <div style="margin-top:20px; display:flex; gap:10px;">
+        <button type="submit" class="btn">Uložit počítadlo</button>
+        <a class="btn secondary" href="{% url 'map' %}">Zrušit</a>
+    </div>
+</form>
+{% endblock %}
