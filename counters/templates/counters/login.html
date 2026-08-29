@@ -1,0 +1,27 @@
+{% extends 'counters/base.html' %}
+
+{% block title %}Přihlášení{% endblock %}
+
+{% block content %}
+<h2 style="margin-top:0;">Přihlášení</h2>
+<p style="color:var(--muted); font-size:14px;">
+    Přístup mají pouze zaměstnanci firmy.
+</p>
+
+{% if form.errors %}
+<p style="color:var(--red); font-size:14px;">Nesprávné uživatelské jméno nebo heslo.</p>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <label for="id_username">Uživatelské jméno</label>
+    <input type="text" name="username" id="id_username" autofocus required>
+
+    <label for="id_password">Heslo</label>
+    <input type="password" name="password" id="id_password" required>
+
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <button type="submit" class="btn" style="margin-top:20px;">Přihlásit se</button>
+</form>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'counters/base.html' %}
+
+{% block title %}Všechna počítadla{% endblock %}
+
+{% block content %}
+<h2 style="margin-top:0;">Všechna počítadla ({{ counters|length }})</h2>
+
+{% if counters %}
+<table class="counter-table">
+    <thead>
+        <tr>
+            <th>Název</th>
+            <th>Adresa</th>
+            <th>Stav</th>
+            <th>Aktualizováno</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for counter in counters %}
+        <tr>
+            <td><a href="{% url 'counter_detail' counter.pk %}">{{ counter.name }}</a></td>
+            <td>{{ counter.address|default:"—" }}</td>
+            <td><span class="badge {{ counter.status }}">{{ counter.get_status_display }}</span></td>
+            <td style="color:var(--muted); font-size:13px;">{{ counter.updated_at|date:"d.m.Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color:var(--muted);">Zatím nejsou žádná počítadla. Přidejte první na mapě.</p>
+<a class="btn" href="{% url 'map' %}">Přejít na mapu</a>
+{% endif %}
+{% endblock %}
