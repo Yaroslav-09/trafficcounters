@@ -24,3 +24,4 @@ services:
 databases:
   - name: trafficcounters-db
     plan: free
+
