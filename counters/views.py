@@ -1,11 +1,16 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .forms import CounterForm, StatusUpdateForm
 from .models import Counter, CounterEvent
+
+
+def healthz(request):
+    """Jednoduchý health check pro Render (bez přihlášení)."""
+    return HttpResponse('ok', content_type='text/plain')
 
 
 @login_required
