@@ -155,15 +155,44 @@
             font-weight: 500;
         }
         .counter-table a:hover { text-decoration: underline; }
+
+        @media (max-width: 640px) {
+            header {
+                padding: 10px 12px;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            header a.brand {
+                font-size: 15px;
+            }
+            .header-nav {
+                gap: 6px;
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+            .header-nav .btn {
+                padding: 7px 10px;
+                font-size: 13px;
+            }
+            .header-username { display: none; }
+            .nav-label-full { display: none; }
+            .nav-label-short { display: inline; }
+        }
+        @media (min-width: 641px) {
+            .nav-label-short { display: none; }
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <header>
         <a class="brand" href="{% url 'map' %}">📍 Počítadla lidí</a>
         <nav class="header-nav">
             <a class="btn secondary" href="{% url 'map' %}">Mapa</a>
-            <a class="btn secondary" href="{% url 'counter_list' %}">Všechna počítadla</a>
+            <a class="btn secondary" href="{% url 'counter_list' %}">
+                <span class="nav-label-full">Všechna počítadla</span>
+                <span class="nav-label-short">Seznam</span>
+            </a>
             {% if user.is_authenticated %}
             <span class="header-username">{{ user.get_full_name|default:user.username }}</span>
             <form method="post" action="{% url 'logout' %}">

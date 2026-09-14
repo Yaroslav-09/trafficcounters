@@ -43,10 +43,40 @@
 
 <hr style="margin:24px 0; border:none; border-top:1px solid var(--border);">
 
-<h3>Historie ({{ events|length }})</h3>
+<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+    <h3 style="margin:0;">Historie ({{ events|length }})</h3>
+    {% if events %}
+    <button type="button" id="clear-history-toggle" class="btn secondary" style="font-size:13px;">
+        Smazat historii
+    </button>
+    {% endif %}
+</div>
+
 {% if events %}
+<div id="clear-history-panel" hidden
+     style="margin-top:12px; padding:14px; border:1px solid var(--red); border-radius:8px; background:#fff5f5;">
+    <p style="margin:0 0 10px; font-size:14px;">
+        Opravdu smazat <strong>celou historii</strong> tohoto počítadla?
+        Počítadlo zůstane, ale záznamy už nepůjde obnovit.
+    </p>
+    <form method="post" action="{% url 'counter_clear_history' counter.pk %}" id="clear-history-form">
+        {% csrf_token %}
+        <label style="display:flex; align-items:flex-start; gap:8px; margin:0; cursor:pointer; color:var(--text);">
+            <input type="checkbox" id="clear-history-check" style="width:auto; margin-top:3px;">
+            <span style="font-size:13px;">Ano, rozumím — chci historii nenávratně smazat.</span>
+        </label>
+        <input type="hidden" name="confirm_clear" value="yes">
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="submit" id="clear-history-submit" class="btn danger" disabled>
+                Opravdu smazat historii
+            </button>
+            <button type="button" id="clear-history-cancel" class="btn secondary">Zrušit</button>
+        </div>
+    </form>
+</div>
+
     {% for event in events %}
-    <div class="event">
+    <div class="event" style="margin-top:12px;">
         <span class="badge {{ event.status }}">{{ event.get_status_display }}</span>
         <div class="meta">{{ event.created_at|date:"d.m.Y H:i" }}</div>
         {% if event.note %}<div style="margin-top:4px;">{{ event.note }}</div>{% endif %}
@@ -54,5 +84,44 @@
     {% endfor %}
 {% else %}
     <p style="color:var(--muted);">Zatím žádné události.</p>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if events %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var toggle = document.getElementById('clear-history-toggle');
+    var panel = document.getElementById('clear-history-panel');
+    var check = document.getElementById('clear-history-check');
+    var submit = document.getElementById('clear-history-submit');
+    var cancel = document.getElementById('clear-history-cancel');
+    var form = document.getElementById('clear-history-form');
+
+    function resetPanel() {
+        panel.hidden = true;
+        check.checked = false;
+        submit.disabled = true;
+    }
+
+    toggle.addEventListener('click', function () {
+        panel.hidden = !panel.hidden;
+        if (panel.hidden) resetPanel();
+    });
+    cancel.addEventListener('click', resetPanel);
+    check.addEventListener('change', function () {
+        submit.disabled = !check.checked;
+    });
+    form.addEventListener('submit', function (e) {
+        if (!check.checked) {
+            e.preventDefault();
+            return;
+        }
+        if (!confirm('Poslední potvrzení: smazat historii počítadla „{{ counter.name|escapejs }}"?')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
 {% endif %}
 {% endblock %}

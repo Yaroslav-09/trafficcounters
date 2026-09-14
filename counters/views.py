@@ -112,3 +112,21 @@ def counter_delete(request, pk):
     counter.delete()
     messages.success(request, f'Počítadlo „{name}" bylo smazáno.')
     return redirect('map')
+
+
+@login_required
+@require_POST
+def counter_clear_history(request, pk):
+    """Smaže historii událostí počítadla; samotné počítadlo zůstane."""
+    counter = get_object_or_404(Counter, pk=pk)
+    # Dvojí potvrzení z formuláře — ochrana proti náhodnému odeslání
+    if request.POST.get('confirm_clear') != 'yes':
+        messages.error(request, 'Smazání historie nebylo potvrzeno.')
+        return redirect('counter_detail', pk=counter.pk)
+
+    deleted, _ = counter.events.all().delete()
+    messages.success(
+        request,
+        f'Historie počítadla „{counter.name}" byla smazána ({deleted} záznamů).'
+    )
+    return redirect('counter_detail', pk=counter.pk)

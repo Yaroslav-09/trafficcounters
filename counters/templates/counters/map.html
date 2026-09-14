@@ -2,52 +2,343 @@
 {% load static %}
 
 {% block title %}Mapa počítadel{% endblock %}
+{% block body_class %}map-page{% endblock %}
 
 {% block full_content %}
-<div id="map" style="position:absolute; top:57px; left:0; right:0; bottom:0;"></div>
+<div id="map-wrap">
+    <div id="map"></div>
 
-<div id="toolbar" style="position:absolute; top:70px; left:12px; z-index:1000; display:flex; flex-direction:column; gap:8px;">
-    <button id="add-mode-btn" class="btn" style="box-shadow:0 2px 6px rgba(0,0,0,.15);">
-        ➕ Přidat počítadlo
-    </button>
-    <div id="add-hint" style="display:none; background:#fff; padding:8px 12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,.15); font-size:13px; max-width:220px;">
-        Klikněte na mapu na místě, kde je počítadlo umístěno.
-        <br><button id="cancel-add-mode" class="btn secondary" style="margin-top:6px; padding:4px 10px;">Zrušit</button>
+    <div id="toolbar">
+        <button id="add-mode-btn" class="btn toolbar-btn">
+            <span class="btn-label-full">➕ Přidat počítadlo</span>
+            <span class="btn-label-short">➕ Přidat</span>
+        </button>
+        <div id="add-hint">
+            Klepněte na mapu na místě, kde je počítadlo umístěno.
+            <br><button id="cancel-add-mode" class="btn secondary" style="margin-top:6px; padding:4px 10px;">Zrušit</button>
+        </div>
+        <div id="legend">
+            <div><span class="badge working">●</span> V provozu</div>
+            <div style="margin-top:4px;"><span class="badge defect">●</span> Porucha</div>
+            <div style="margin-top:4px;"><span class="badge disabled">●</span> Vypnuto</div>
+        </div>
     </div>
-    <div style="background:#fff; padding:10px 12px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,.15); font-size:12px;">
-        <div><span class="badge working">●</span> V provozu</div>
-        <div style="margin-top:4px;"><span class="badge defect">●</span> Porucha</div>
-        <div style="margin-top:4px;"><span class="badge disabled">●</span> Vypnuto</div>
-    </div>
-</div>
 
-{% if messages %}
-<div style="position:absolute; top:70px; right:12px; z-index:1000; max-width:280px;">
-    <ul class="messages" style="margin:0;">
-        {% for message in messages %}<li>{{ message }}</li>{% endfor %}
-    </ul>
+    {% if messages %}
+    <div id="map-messages">
+        <ul class="messages" style="margin:0;">
+            {% for message in messages %}<li>{{ message }}</li>{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 </div>
-{% endif %}
 
 <style>
-    html, body { height: 100%; }
+    html, body.map-page {
+        height: 100%;
+        height: 100dvh;
+        margin: 0;
+        overflow: hidden;
+    }
+    body.map-page {
+        display: flex;
+        flex-direction: column;
+    }
+    body.map-page header {
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1100;
+    }
+    #map-wrap {
+        flex: 1 1 auto;
+        position: relative;
+        min-height: 0;
+        width: 100%;
+    }
+    /* Markery nejsou „nalepené“ na pozadí — Leaflet je drží na GPS souřadnicích. */
+    #map,
+    #map.leaflet-container {
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        background: #dce3ea;
+        touch-action: pan-x pan-y;
+        -webkit-tap-highlight-color: transparent;
+    }
+    #toolbar {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: min(240px, calc(100% - 24px));
+        pointer-events: none;
+    }
+    #toolbar > * {
+        pointer-events: auto;
+    }
+    .toolbar-btn {
+        box-shadow: 0 2px 6px rgba(0,0,0,.15);
+        width: 100%;
+        text-align: center;
+    }
+    #add-hint {
+        display: none;
+        background: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,.15);
+        font-size: 13px;
+    }
+    #legend {
+        background: #fff;
+        padding: 10px 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,.15);
+        font-size: 12px;
+    }
+    #map-messages {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 1000;
+        max-width: min(280px, calc(100% - 24px));
+    }
+    .btn-label-short { display: none; }
+    .leaflet-control-zoom a {
+        width: 36px !important;
+        height: 36px !important;
+        line-height: 36px !important;
+        font-size: 18px !important;
+    }
+
+    @media (max-width: 640px) {
+        #toolbar {
+            top: auto;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+            left: 12px;
+            right: 12px;
+            max-width: none;
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        .toolbar-btn {
+            width: auto;
+            flex: 0 0 auto;
+            padding: 12px 14px;
+            font-size: 14px;
+        }
+        .btn-label-full { display: none; }
+        .btn-label-short { display: inline; }
+        #legend {
+            margin-left: auto;
+            padding: 8px 10px;
+            font-size: 11px;
+        }
+        #add-hint {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 100%;
+            margin-bottom: 8px;
+            max-width: none;
+        }
+        #map-messages {
+            top: auto;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+            left: 12px;
+            right: 12px;
+            max-width: none;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block extra_head %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Výchozí střed mapy — Praha. Souřadnice lze změnit podle potřeby.
-    var map = L.map('map').setView([50.0755, 14.4378], 12);
+    if (typeof L === 'undefined') {
+        console.error('Leaflet se nenačetl.');
+        return;
+    }
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    var isMobile = window.matchMedia('(max-width: 640px)').matches;
+    var mapEl = document.getElementById('map');
+
+    // iOS: zabránit otočení/zoomu celé stránky (to by oddělilo markery od dlaždic)
+    mapEl.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+    mapEl.addEventListener('gesturechange', function (e) { e.preventDefault(); });
+
+    var map = L.map(mapEl, {
+        zoomControl: false,
+        tapTolerance: 25,
+        worldCopyJump: true,
+        maxBoundsViscosity: 1.0
+    });
+
+    L.control.zoom({ position: isMobile ? 'bottomright' : 'topleft' }).addTo(map);
+
+    // Vrstva markerů — všechno je uvnitř mapy (ne HTML overlay přes pozadí)
+    var countersLayer = L.layerGroup().addTo(map);
+
+    // Několik zdrojů BEZ API klíče + automatická záloha.
+    // Pořadí: nejdřív ověříme zkušební dlaždici (Praha), teprve pak ji použijeme.
+    var tileProviders = [
+        {
+            name: 'Esri Street',
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+            options: {
+                maxZoom: 19,
+                attribution: 'Tiles &copy; Esri &mdash; Esri, OpenStreetMap a další'
+            }
+        },
+        {
+            name: 'Esri Topo',
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+            options: {
+                maxZoom: 19,
+                attribution: 'Tiles &copy; Esri'
+            }
+        },
+        {
+            name: 'OSM France',
+            url: 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+            options: {
+                maxZoom: 20,
+                subdomains: 'abc',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> / OSM France'
+            }
+        },
+        {
+            name: 'OSM HOT',
+            url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+            options: {
+                maxZoom: 19,
+                subdomains: 'abc',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, HOT'
+            }
+        },
+        {
+            name: 'OpenStreetMap',
+            url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            options: {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }
+        },
+        {
+            name: 'OpenTopoMap',
+            url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+            options: {
+                maxZoom: 17,
+                subdomains: 'abc',
+                attribution: 'Map data: &copy; OpenStreetMap, SRTM | Map style: &copy; OpenTopoMap'
+            }
+        }
+    ];
+
+    var activeTiles = null;
+    var pickGeneration = 0;
+    var failedProviders = {};
+
+    // Zkušební dlaždice nad Prahou (z=12, x=2212, y=1385)
+    function probeUrl(template) {
+        return template
+            .replace('{s}', 'a')
+            .replace('{r}', '')
+            .replace('{z}', '12')
+            .replace('{x}', '2212')
+            .replace('{y}', '1385');
+    }
+
+    function activateProvider(index) {
+        if (index < 0 || index >= tileProviders.length) return;
+        var provider = tileProviders[index];
+        var layer = L.tileLayer(provider.url, Object.assign({
+            updateWhenIdle: false
+        }, provider.options));
+
+        if (activeTiles) {
+            map.removeLayer(activeTiles);
+        }
+        activeTiles = layer;
+        layer.addTo(map);
+        console.info('Mapa: ' + provider.name);
+
+        layer.on('tileerror', function () {
+            if (failedProviders[index]) return;
+            failedProviders[index] = true;
+            console.warn('Mapa selhala (' + provider.name + '), zkouším zálohu…');
+            pickProvider(index + 1);
+        });
+    }
+
+    function pickProvider(startIndex) {
+        if (startIndex >= tileProviders.length) {
+            console.error('Žádný mapový zdroj nefunguje.');
+            return;
+        }
+
+        var generation = ++pickGeneration;
+        var index = startIndex;
+        var provider = tileProviders[index];
+        var url = probeUrl(provider.url) + '?_=' + Date.now();
+        var img = new Image();
+
+        var timer = setTimeout(function () {
+            if (generation !== pickGeneration) return;
+            console.warn('Mapa timeout (' + provider.name + ')');
+            failedProviders[index] = true;
+            pickProvider(index + 1);
+        }, 3500);
+
+        img.onload = function () {
+            if (generation !== pickGeneration) return;
+            clearTimeout(timer);
+            if (img.naturalWidth < 128 || img.naturalHeight < 128) {
+                failedProviders[index] = true;
+                pickProvider(index + 1);
+                return;
+            }
+            activateProvider(index);
+        };
+
+        img.onerror = function () {
+            if (generation !== pickGeneration) return;
+            clearTimeout(timer);
+            console.warn('Mapa nedostupná (' + provider.name + ')');
+            failedProviders[index] = true;
+            pickProvider(index + 1);
+        };
+
+        img.referrerPolicy = 'no-referrer';
+        img.src = url;
+    }
+
+    pickProvider(0);
+
+    function refreshMapSize() {
+        map.invalidateSize({ pan: false });
+    }
+
+    // Nejdřív správná velikost kontejneru, pak střed mapy — jinak markery „ujíždějí“
+    refreshMapSize();
+    map.setView([50.0755, 14.4378], isMobile ? 11 : 12);
+    setTimeout(refreshMapSize, 100);
+    setTimeout(refreshMapSize, 400);
+
+    window.addEventListener('resize', refreshMapSize);
+    window.addEventListener('orientationchange', function () {
+        setTimeout(refreshMapSize, 200);
+    });
 
     var addModeBtn = document.getElementById('add-mode-btn');
     var addHint = document.getElementById('add-hint');
@@ -71,29 +362,47 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function loadCounters() {
-        fetch("{% url 'counters_json' %}")
-            .then(function (r) { return r.json(); })
+        fetch("{% url 'counters_json' %}", { credentials: 'same-origin' })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(function (data) {
-                data.counters.forEach(function (c) {
-                    var marker = L.circleMarker([c.lat, c.lng], {
-                        radius: 9,
+                countersLayer.clearLayers();
+                var markerRadius = isMobile ? 12 : 9;
+
+                (data.counters || []).forEach(function (c) {
+                    var lat = Number(c.lat);
+                    var lng = Number(c.lng);
+                    if (!isFinite(lat) || !isFinite(lng)) return;
+
+                    // circleMarker = bod na souřadnicích (ne HTML prvek přes mapu)
+                    var marker = L.circleMarker([lat, lng], {
+                        radius: markerRadius,
                         color: '#fff',
                         weight: 2,
                         fillColor: c.color,
-                        fillOpacity: 0.95
-                    }).addTo(map);
+                        fillOpacity: 0.95,
+                        interactive: true
+                    });
 
-                    var popupHtml =
+                    marker.bindPopup(
                         '<strong>' + c.name + '</strong><br>' +
                         (c.address ? c.address + '<br>' : '') +
                         'Stav: ' + c.status_display + '<br>' +
-                        '<a href="' + c.url + '">Otevřít detail →</a>';
-                    marker.bindPopup(popupHtml);
+                        '<a href="' + c.url + '">Otevřít detail →</a>'
+                    );
+                    countersLayer.addLayer(marker);
                 });
+
+                refreshMapSize();
+            })
+            .catch(function (err) {
+                console.error('Nepodařilo se načíst počítadla:', err);
             });
     }
 
-    loadCounters();
+    map.whenReady(loadCounters);
 });
 </script>
 {% endblock %}

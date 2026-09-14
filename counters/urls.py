@@ -12,4 +12,5 @@ urlpatterns = [
     path('counters/list/', views.counter_list, name='counter_list'),
     path('counters/<int:pk>/', views.counter_detail, name='counter_detail'),
     path('counters/<int:pk>/delete/', views.counter_delete, name='counter_delete'),
+    path('counters/<int:pk>/clear-history/', views.counter_clear_history, name='counter_clear_history'),
 ]
