@@ -111,6 +111,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
     'staticfiles': {
         # CompressedStaticFilesStorage je spolehlivější než Manifest na Renderu
         'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
