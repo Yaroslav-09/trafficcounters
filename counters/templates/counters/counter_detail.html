@@ -29,7 +29,7 @@
 <hr style="margin:24px 0; border:none; border-top:1px solid var(--border);">
 
 <h3>Změnit stav</h3>
-<form method="post">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% for field in status_form %}
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -87,6 +87,11 @@
             {% endif %}
         </div>
         {% if event.note %}<div style="margin-top:4px;">{{ event.note }}</div>{% endif %}
+        {% if event.photo %}
+            <a href="{{ event.photo.url }}" target="_blank" rel="noopener">
+                <img src="{{ event.photo.url }}" alt="Event photo" style="display:block; max-width:260px; max-height:180px; margin-top:8px; border-radius:6px; object-fit:cover;">
+            </a>
+        {% endif %}
     </div>
     {% endfor %}
 {% else %}

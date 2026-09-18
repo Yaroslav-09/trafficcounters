@@ -90,7 +90,7 @@ def counter_detail(request, pk):
     events = counter.events.all()  # вже відсортовано за -created_at в Meta
 
     if request.method == 'POST':
-        status_form = StatusUpdateForm(request.POST)
+        status_form = StatusUpdateForm(request.POST, request.FILES)
         if status_form.is_valid():
             event = status_form.save(commit=False)
             event.counter = counter

@@ -27,8 +27,9 @@ class StatusUpdateForm(forms.ModelForm):
 
     class Meta:
         model = CounterEvent
-        fields = ['status', 'note']
+        fields = ['status', 'note', 'photo']
         widgets = {
+            'photo': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
             'note': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Např.: vyměněn senzor, nyní funguje správně'}),
         }
         labels = {

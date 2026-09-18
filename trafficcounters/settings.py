@@ -108,6 +108,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 STORAGES = {
     'staticfiles': {
         # CompressedStaticFilesStorage je spolehlivější než Manifest na Renderu

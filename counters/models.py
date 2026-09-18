@@ -78,6 +78,12 @@ class CounterEvent(models.Model):
         blank=True,
         verbose_name='User',
     )
+    photo = models.ImageField(
+        upload_to='event_photos/',
+        blank=True,
+        null=True,
+        verbose_name='Photo',
+    )
 
     def __str__(self):
         return f'{self.counter.name}: {self.get_status_display()} ({self.created_at:%d.%m.%Y %H:%M})'
