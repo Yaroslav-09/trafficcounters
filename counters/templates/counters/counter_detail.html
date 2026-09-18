@@ -79,6 +79,13 @@
     <div class="event" style="margin-top:12px;">
         <span class="badge {{ event.status }}">{{ event.get_status_display }}</span>
         <div class="meta">{{ event.created_at|date:"d.m.Y H:i" }}</div>
+        <div class="meta">Changed by:
+            {% if event.actor %}
+                {{ event.actor.get_full_name|default:event.actor.username }}
+            {% else %}
+                Unknown user
+            {% endif %}
+        </div>
         {% if event.note %}<div style="margin-top:4px;">{{ event.note }}</div>{% endif %}
     </div>
     {% endfor %}

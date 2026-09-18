@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 
@@ -68,6 +69,15 @@ class CounterEvent(models.Model):
         verbose_name = 'Událost'
         verbose_name_plural = 'Historie událostí'
         ordering = ['-created_at']
+
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='counter_events',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='User',
+    )
 
     def __str__(self):
         return f'{self.counter.name}: {self.get_status_display()} ({self.created_at:%d.%m.%Y %H:%M})'

@@ -20,6 +20,7 @@ class CounterAdmin(admin.ModelAdmin):
 
 @admin.register(CounterEvent)
 class CounterEventAdmin(admin.ModelAdmin):
-    list_display = ('counter', 'status', 'created_at')
+    list_display = ('counter', 'status', 'actor', 'created_at')
     list_filter = ('status',)
+    search_fields = ('counter__name', 'actor__username', 'actor__first_name', 'actor__last_name', 'note')
     ordering = ('-created_at',)

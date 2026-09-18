@@ -68,6 +68,7 @@ def counter_add(request):
             # перший запис в історії — фіксуємо початковий статус
             CounterEvent.objects.create(
                 counter=counter,
+                actor=request.user,
                 status=counter.status,
                 note='Počítadlo přidáno.',
             )
@@ -93,6 +94,7 @@ def counter_detail(request, pk):
         if status_form.is_valid():
             event = status_form.save(commit=False)
             event.counter = counter
+            event.actor = request.user
             event.save()
             # синхронізуємо поточний статус лічильника з останньою подією
             counter.status = event.status
