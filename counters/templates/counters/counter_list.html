@@ -12,6 +12,7 @@
             <th>Název</th>
             <th>Adresa</th>
             <th>Stav</th>
+            <th>Akce</th>
             <th>Aktualizováno</th>
         </tr>
     </thead>
@@ -21,6 +22,7 @@
             <td><a href="{% url 'counter_detail' counter.pk %}">{{ counter.name }}</a></td>
             <td>{{ counter.address|default:"—" }}</td>
             <td><span class="badge {{ counter.status }}">{{ counter.get_status_display }}</span></td>
+            <td><a class="btn btn-small detail-btn" style="display:inline-flex; color:#245dcc !important; text-decoration:none !important; background:#fff; border:1px solid #c9dafb;" href="{% url 'counter_detail' counter.pk %}">Otevřít detail</a></td>
             <td style="color:var(--muted); font-size:13px;">{{ counter.updated_at|date:"d.m.Y H:i" }}</td>
         </tr>
         {% endfor %}

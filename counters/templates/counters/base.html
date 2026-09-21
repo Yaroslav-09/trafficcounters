@@ -83,6 +83,7 @@
         .btn.danger {
             background: var(--red);
         }
+        .btn-small { padding: 7px 11px; font-size: 13px; }
         label {
             display: block;
             font-size: 13px;
@@ -155,6 +156,46 @@
             font-weight: 500;
         }
         .counter-table a:hover { text-decoration: underline; }
+        .counter-table a.btn,
+        .counter-table a.btn:hover {
+            color: #fff;
+            text-decoration: none;
+        }
+        .counter-table a.detail-btn,
+        .counter-table a.detail-btn:hover {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fff;
+            color: #245dcc !important;
+            border: 1px solid #c9dafb;
+            text-decoration: none !important;
+            opacity: 1;
+        }
+        .counter-table a.detail-btn:hover {
+            background: #dce9ff;
+            border-color: #9fbeef;
+        }
+
+        input[type=file] {
+            width: 100%;
+            padding: 7px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #fafbfc;
+            font-size: 13px;
+        }
+        input[type=file]::file-selector-button {
+            margin-right: 10px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background: #fff;
+            color: var(--text);
+            font: inherit;
+            cursor: pointer;
+        }
+        input[type=file]::file-selector-button:hover { background: #f1f5fb; }
 
         @media (max-width: 640px) {
             header {
