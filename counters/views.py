@@ -1,6 +1,12 @@
+import mimetypes
+from functools import wraps
+
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
+from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import PermissionDenied
+from django.db import DatabaseError, connection
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -8,24 +14,42 @@ from .forms import CounterForm, StatusUpdateForm
 from .models import Counter, CounterEvent
 
 
+def staff_required(view_func):
+    """Only authenticated staff accounts can view or change business data."""
+    @wraps(view_func)
+    def wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path(), settings.LOGIN_URL)
+        if not request.user.is_active or not request.user.is_staff:
+            raise PermissionDenied
+        return view_func(request, *args, **kwargs)
+
+    return wrapped_view
+
+
 def healthz(request):
-    """Jednoduchý health check pro Render (bez přihlášení)."""
+    """Readiness check pro Render: aplikace i databáze musí být dostupné."""
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+    except DatabaseError:
+        return HttpResponse('unavailable', content_type='text/plain', status=503)
     return HttpResponse('ok', content_type='text/plain')
 
 
-@login_required
+@staff_required
 def map_view(request):
     """Головна сторінка: карта з усіма лічильниками."""
     return render(request, 'counters/map.html')
 
 
-@login_required
+@staff_required
 def counter_list(request):
     counters = Counter.objects.all()
     return render(request, 'counters/counter_list.html', {'counters': counters})
 
 
-@login_required
+@staff_required
 def counters_json(request):
     """
     JSON зі списком усіх лічильників для відображення міток на карті.
@@ -49,7 +73,7 @@ def counters_json(request):
     return JsonResponse({'counters': data})
 
 
-@login_required
+@staff_required
 def counter_add(request):
     """
     Додавання нового лічильника.
@@ -83,7 +107,7 @@ def counter_add(request):
     return render(request, 'counters/counter_form.html', {'form': form, 'is_new': True})
 
 
-@login_required
+@staff_required
 def counter_detail(request, pk):
     """Картка лічильника: інформація + історія подій + форма зміни статусу."""
     counter = get_object_or_404(Counter, pk=pk)
@@ -111,7 +135,28 @@ def counter_detail(request, pk):
     })
 
 
-@login_required
+@staff_required
+def counter_event_photo(request, pk):
+    event = get_object_or_404(CounterEvent.objects.only('photo'), pk=pk)
+    if not event.photo:
+        raise Http404
+
+    content_type, _ = mimetypes.guess_type(event.photo.name)
+    if not content_type or not content_type.startswith('image/'):
+        content_type = 'application/octet-stream'
+
+    try:
+        photo_file = event.photo.open('rb')
+    except OSError as error:
+        raise Http404 from error
+
+    response = FileResponse(photo_file, content_type=content_type)
+    response['X-Content-Type-Options'] = 'nosniff'
+    response['Cache-Control'] = 'private, no-store'
+    return response
+
+
+@staff_required
 @require_POST
 def counter_delete(request, pk):
     counter = get_object_or_404(Counter, pk=pk)
@@ -121,7 +166,7 @@ def counter_delete(request, pk):
     return redirect('map')
 
 
-@login_required
+@staff_required
 @require_POST
 def counter_clear_history(request, pk):
     """Smaže historii událostí počítadla; samotné počítadlo zůstane."""

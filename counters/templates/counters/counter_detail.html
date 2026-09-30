@@ -3,30 +3,30 @@
 {% block title %}{{ counter.name }}{% endblock %}
 
 {% block content %}
-<div style="display:flex; justify-content:space-between; align-items:flex-start;">
+<div class="counter-detail-header">
     <div>
-        <h2 style="margin-bottom:4px;">{{ counter.name }}</h2>
-        {% if counter.address %}<div style="color:var(--muted); font-size:14px;">{{ counter.address }}</div>{% endif %}
+        <h2 class="counter-name">{{ counter.name }}</h2>
+        {% if counter.address %}<div class="counter-address">{{ counter.address }}</div>{% endif %}
     </div>
     <span class="badge {{ counter.status }}">{{ counter.get_status_display }}</span>
 </div>
 
 {% if counter.description %}
-<p style="margin-top:14px;">{{ counter.description }}</p>
+<p class="counter-description">{{ counter.description }}</p>
 {% endif %}
 
-<p style="color:var(--muted); font-size:13px;">
+<p class="counter-metadata">
     Souřadnice: {{ counter.latitude }}, {{ counter.longitude }} ·
     Přidáno: {{ counter.created_at|date:"d.m.Y H:i" }}
 </p>
 
 <form method="post" action="{% url 'counter_delete' counter.pk %}"
-      onsubmit="return confirm('Opravdu smazat toto počítadlo včetně historie?');" style="display:inline;">
+      onsubmit="return confirm('Opravdu smazat toto počítadlo včetně historie?');" class="counter-delete-form">
     {% csrf_token %}
-    <button type="submit" class="btn danger" style="margin-top:4px;">Smazat počítadlo</button>
+    <button type="submit" class="btn danger counter-delete-button">Smazat počítadlo</button>
 </form>
 
-<hr style="margin:24px 0; border:none; border-top:1px solid var(--border);">
+<hr class="section-divider">
 
 <h3>Změnit stav</h3>
 <form method="post" enctype="multipart/form-data">
@@ -35,38 +35,37 @@
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {{ field }}
         {% if field.errors %}
-            <div style="color:var(--red); font-size:12px; margin-top:4px;">{{ field.errors|striptags }}</div>
+            <div class="field-error">{{ field.errors|striptags }}</div>
         {% endif %}
     {% endfor %}
-    <button type="submit" class="btn" style="margin-top:14px;">Uložit stav</button>
+    <button type="submit" class="btn counter-save-button">Uložit stav</button>
 </form>
 
-<hr style="margin:24px 0; border:none; border-top:1px solid var(--border);">
+<hr class="section-divider">
 
-<div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
-    <h3 style="margin:0;">Historie ({{ events|length }})</h3>
+<div class="event-history-header">
+    <h3 class="event-history-title">Historie ({{ events|length }})</h3>
     {% if events %}
-    <button type="button" id="clear-history-toggle" class="btn secondary" style="font-size:13px;">
+    <button type="button" id="clear-history-toggle" class="btn secondary">
         Smazat historii
     </button>
     {% endif %}
 </div>
 
 {% if events %}
-<div id="clear-history-panel" hidden
-     style="margin-top:12px; padding:14px; border:1px solid var(--red); border-radius:8px; background:#fff5f5;">
-    <p style="margin:0 0 10px; font-size:14px;">
+<div id="clear-history-panel" class="clear-history-panel" hidden>
+    <p class="clear-history-confirmation">
         Opravdu smazat <strong>celou historii</strong> tohoto počítadla?
         Počítadlo zůstane, ale záznamy už nepůjde obnovit.
     </p>
     <form method="post" action="{% url 'counter_clear_history' counter.pk %}" id="clear-history-form">
         {% csrf_token %}
-        <label style="display:flex; align-items:flex-start; gap:8px; margin:0; cursor:pointer; color:var(--text);">
-            <input type="checkbox" id="clear-history-check" style="width:auto; margin-top:3px;">
-            <span style="font-size:13px;">Ano, rozumím — chci historii nenávratně smazat.</span>
+        <label class="clear-history-confirm-label">
+            <input type="checkbox" id="clear-history-check">
+            <span>Ano, rozumím — chci historii nenávratně smazat.</span>
         </label>
         <input type="hidden" name="confirm_clear" value="yes">
-        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="clear-history-actions">
             <button type="submit" id="clear-history-submit" class="btn danger" disabled>
                 Opravdu smazat historii
             </button>
@@ -76,7 +75,7 @@
 </div>
 
     {% for event in events %}
-    <div class="event" style="margin-top:12px;">
+    <div class="event counter-event">
         <span class="badge {{ event.status }}">{{ event.get_status_display }}</span>
         <div class="meta">{{ event.created_at|date:"d.m.Y H:i" }}</div>
         <div class="meta">Changed by:
@@ -86,16 +85,16 @@
                 Unknown user
             {% endif %}
         </div>
-        {% if event.note %}<div style="margin-top:4px;">{{ event.note }}</div>{% endif %}
+        {% if event.note %}<div class="counter-event-note">{{ event.note }}</div>{% endif %}
         {% if event.photo %}
-            <a href="{{ event.photo.url }}" target="_blank" rel="noopener">
-                <img src="{{ event.photo.url }}" alt="Event photo" style="display:block; max-width:260px; max-height:180px; margin-top:8px; border-radius:6px; object-fit:cover;">
+            <a href="{% url 'counter_event_photo' event.pk %}" target="_blank" rel="noopener">
+                <img src="{% url 'counter_event_photo' event.pk %}" alt="Fotka události" class="event-photo">
             </a>
         {% endif %}
     </div>
     {% endfor %}
 {% else %}
-    <p style="color:var(--muted);">Zatím žádné události.</p>
+    <p class="empty-state">Zatím žádné události.</p>
 {% endif %}
 {% endblock %}
 

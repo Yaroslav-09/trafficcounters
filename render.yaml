@@ -1,4 +1,6 @@
 # Blueprint pro Render.com
+# Hobby setup: use only Render's free service and database plans.
+# Region is omitted so an existing service keeps its current region.
 services:
   - type: web
     name: trafficcounters

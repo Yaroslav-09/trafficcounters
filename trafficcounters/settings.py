@@ -6,25 +6,31 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY',
-    'django-insecure-CHANGE-ME-BEFORE-DEPLOY',
-)
+default_debug = 'False' if os.environ.get('RENDER') else 'True'
+DEBUG = os.environ.get('DEBUG', default_debug).lower() in ('1', 'true', 'yes')
 
-DEBUG = os.environ.get('DEBUG', 'True').lower() in ('1', 'true', 'yes')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured('SECRET_KEY must be set when DEBUG is False.')
+    SECRET_KEY = 'django-insecure-local-development-only'
 
+default_allowed_hosts = 'localhost,127.0.0.1' if DEBUG else ''
 ALLOWED_HOSTS = [
     h.strip()
-    for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    for h in os.environ.get('ALLOWED_HOSTS', default_allowed_hosts).split(',')
     if h.strip()
 ]
 # Render přidává hostname automaticky přes RENDER_EXTERNAL_HOSTNAME
 render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if render_host and render_host not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(render_host)
+if not DEBUG and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured('Set ALLOWED_HOSTS for the production domain.')
 
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
@@ -78,25 +84,33 @@ TEMPLATES = [
 WSGI_APPLICATION = 'trafficcounters.wsgi.application'
 ASGI_APPLICATION = 'trafficcounters.asgi.application'
 
-# Lokálně SQLite; na Renderu PostgreSQL přes DATABASE_URL
-if os.environ.get('DATABASE_URL'):
+# Lokálně SQLite; v produkci je PostgreSQL povinné, aby se data nezapisovala
+# omylem do dočasného souboru na webovém serveru.
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
     DATABASES = {
         'default': dj_database_url.config(
+            default=database_url,
             conn_max_age=600,
             ssl_require=True,
         )
     }
-else:
+elif DEBUG:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+else:
+    raise ImproperlyConfigured('DATABASE_URL must be set in production.')
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 12},
+    },
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
@@ -109,7 +123,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
@@ -132,3 +146,8 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'

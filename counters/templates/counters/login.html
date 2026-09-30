@@ -3,13 +3,13 @@
 {% block title %}Přihlášení{% endblock %}
 
 {% block content %}
-<h2 style="margin-top:0;">Přihlášení</h2>
-<p style="color:var(--muted); font-size:14px;">
+<h2 class="content-heading">Přihlášení</h2>
+<p class="page-intro">
     Přístup mají pouze zaměstnanci firmy.
 </p>
 
 {% if form.errors %}
-<p style="color:var(--red); font-size:14px;">Nesprávné uživatelské jméno nebo heslo.</p>
+<p class="login-error">Nesprávné uživatelské jméno nebo heslo.</p>
 {% endif %}
 
 <form method="post">
@@ -22,6 +22,6 @@
 
     <input type="hidden" name="next" value="{{ next }}">
 
-    <button type="submit" class="btn" style="margin-top:20px;">Přihlásit se</button>
+    <button type="submit" class="btn login-submit">Přihlásit se</button>
 </form>
 {% endblock %}

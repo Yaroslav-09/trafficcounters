@@ -15,165 +15,28 @@
         </button>
         <div id="add-hint">
             Klepněte na mapu na místě, kde je počítadlo umístěno.
-            <br><button id="cancel-add-mode" class="btn secondary" style="margin-top:6px; padding:4px 10px;">Zrušit</button>
+            <br><button id="cancel-add-mode" class="btn secondary cancel-add-mode-btn">Zrušit</button>
         </div>
         <div id="legend">
             <div><span class="badge working">●</span> V provozu</div>
-            <div style="margin-top:4px;"><span class="badge defect">●</span> Porucha</div>
-            <div style="margin-top:4px;"><span class="badge disabled">●</span> Vypnuto</div>
+            <div><span class="badge defect">●</span> Porucha</div>
+            <div><span class="badge disabled">●</span> Vypnuto</div>
         </div>
     </div>
 
     {% if messages %}
     <div id="map-messages">
-        <ul class="messages" style="margin:0;">
+        <ul class="messages">
             {% for message in messages %}<li>{{ message }}</li>{% endfor %}
         </ul>
     </div>
     {% endif %}
 </div>
-
-<style>
-    html, body.map-page {
-        height: 100%;
-        height: 100dvh;
-        margin: 0;
-        overflow: hidden;
-    }
-    body.map-page {
-        display: flex;
-        flex-direction: column;
-    }
-    body.map-page header {
-        flex-shrink: 0;
-        position: relative;
-        z-index: 1100;
-    }
-    #map-wrap {
-        flex: 1 1 auto;
-        position: relative;
-        min-height: 0;
-        width: 100%;
-    }
-    /* Markery nejsou „nalepené“ na pozadí — Leaflet je drží na GPS souřadnicích. */
-    #map,
-    #map.leaflet-container {
-        width: 100%;
-        height: 100%;
-        z-index: 0;
-        background: #dce3ea;
-        touch-action: pan-x pan-y;
-        -webkit-tap-highlight-color: transparent;
-    }
-    #toolbar {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        max-width: min(240px, calc(100% - 24px));
-        pointer-events: none;
-    }
-    #toolbar > * {
-        pointer-events: auto;
-    }
-    .toolbar-btn {
-        box-shadow: 0 2px 6px rgba(0,0,0,.15);
-        width: 100%;
-        text-align: center;
-    }
-    #add-hint {
-        display: none;
-        background: #fff;
-        padding: 8px 12px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0,0,0,.15);
-        font-size: 13px;
-    }
-    #legend {
-        background: #fff;
-        padding: 10px 12px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0,0,0,.15);
-        font-size: 12px;
-    }
-    #map-messages {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        z-index: 1000;
-        max-width: min(280px, calc(100% - 24px));
-    }
-    .btn-label-short { display: none; }
-    .leaflet-control-zoom a {
-        width: 36px !important;
-        height: 36px !important;
-        line-height: 36px !important;
-        font-size: 18px !important;
-    }
-    .leaflet-popup-content a {
-        display: inline-block;
-        margin-top: 8px;
-        padding: 7px 10px;
-        border: 1px solid #c9dafb;
-        border-radius: 6px;
-        background: #fff;
-        color: #245dcc !important;
-        font-weight: 600;
-        text-decoration: none !important;
-    }
-    .leaflet-popup-content a:hover {
-        background: #dce9ff;
-        border-color: #9fbeef;
-    }
-
-    @media (max-width: 640px) {
-        #toolbar {
-            top: auto;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-            left: 12px;
-            right: 12px;
-            max-width: none;
-            flex-direction: row;
-            align-items: flex-end;
-            gap: 8px;
-        }
-        .toolbar-btn {
-            width: auto;
-            flex: 0 0 auto;
-            padding: 12px 14px;
-            font-size: 14px;
-        }
-        .btn-label-full { display: none; }
-        .btn-label-short { display: inline; }
-        #legend {
-            margin-left: auto;
-            padding: 8px 10px;
-            font-size: 11px;
-        }
-        #add-hint {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 100%;
-            margin-bottom: 8px;
-            max-width: none;
-        }
-        #map-messages {
-            top: auto;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
-            left: 12px;
-            right: 12px;
-            max-width: none;
-        }
-    }
-</style>
 {% endblock %}
 
 {% block extra_head %}
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="stylesheet" href="{% static 'counters/css/map.css' %}">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 {% endblock %}
 
@@ -192,12 +55,49 @@ document.addEventListener('DOMContentLoaded', function () {
     mapEl.addEventListener('gesturestart', function (e) { e.preventDefault(); });
     mapEl.addEventListener('gesturechange', function (e) { e.preventDefault(); });
 
+    var czechiaBounds = L.latLngBounds(
+        [48.35, 11.85],
+        [51.15, 19.10]
+    );
+
     var map = L.map(mapEl, {
         zoomControl: false,
         tapTolerance: 25,
         worldCopyJump: true,
+        minZoom: isMobile ? 6 : 7,
+        maxBounds: czechiaBounds,
         maxBoundsViscosity: 1.0
     });
+
+    // Zjednodušený obrys České republiky (souřadnice jsou [lat, lng]).
+    var czechiaBorder = [
+        [48.596982, 16.960288], [48.785808, 16.499283], [48.733899, 16.029647],
+        [49.039074, 15.253416], [48.964402, 14.901447], [48.555305, 14.338898],
+        [48.877172, 13.595946], [49.307068, 13.031329], [49.547415, 12.521024],
+        [49.969121, 12.415191], [50.266338, 12.240111], [50.484076, 12.966837],
+        [50.733234, 13.338132], [50.926918, 14.056228], [51.117268, 14.307013],
+        [51.002339, 14.570718], [51.106674, 15.016996], [50.784730, 15.490972],
+        [50.697733, 16.238627], [50.422607, 16.176253], [50.215747, 16.719476],
+        [50.473974, 16.868769], [50.362146, 17.554567], [50.049038, 17.649445],
+        [49.988629, 18.392914], [49.496230, 18.853144], [49.495015, 18.554971],
+        [49.315001, 18.399994], [49.271515, 18.170498], [49.043983, 18.104973],
+        [48.996493, 17.913512], [48.903475, 17.886485], [48.800019, 17.545007],
+        [48.816969, 17.101985]
+    ];
+
+    function isWithinCzechia(lat, lng) {
+        var inside = false;
+        for (var i = 0, j = czechiaBorder.length - 1; i < czechiaBorder.length; j = i++) {
+            var yi = czechiaBorder[i][0];
+            var xi = czechiaBorder[i][1];
+            var yj = czechiaBorder[j][0];
+            var xj = czechiaBorder[j][1];
+            var crosses = ((yi > lat) !== (yj > lat)) &&
+                (lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi);
+            if (crosses) inside = !inside;
+        }
+        return inside;
+    }
 
     L.control.zoom({ position: isMobile ? 'bottomright' : 'topleft' }).addTo(map);
 
@@ -294,6 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.warn('Mapa selhala (' + provider.name + '), zkouším zálohu…');
             pickProvider(index + 1);
         });
+
     }
 
     function pickProvider(startIndex) {
@@ -346,7 +247,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Nejdřív správná velikost kontejneru, pak střed mapy — jinak markery „ujíždějí“
     refreshMapSize();
-    map.setView([50.0755, 14.4378], isMobile ? 11 : 12);
+    map.fitBounds(czechiaBounds, {
+        padding: [20, 20],
+        maxZoom: isMobile ? 7 : 8
+    });
     setTimeout(refreshMapSize, 100);
     setTimeout(refreshMapSize, 400);
 
@@ -371,6 +275,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     map.on('click', function (e) {
         if (!addMode) return;
+        if (!isWithinCzechia(e.latlng.lat, e.latlng.lng)) return;
         var lat = e.latlng.lat.toFixed(6);
         var lng = e.latlng.lng.toFixed(6);
         window.location.href = "{% url 'counter_add' %}?lat=" + lat + "&lng=" + lng;
@@ -389,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 (data.counters || []).forEach(function (c) {
                     var lat = Number(c.lat);
                     var lng = Number(c.lng);
-                    if (!isFinite(lat) || !isFinite(lng)) return;
+                    if (!isFinite(lat) || !isFinite(lng) || !isWithinCzechia(lat, lng)) return;
 
                     // circleMarker = bod na souřadnicích (ne HTML prvek přes mapu)
                     var marker = L.circleMarker([lat, lng], {

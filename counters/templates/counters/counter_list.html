@@ -3,7 +3,7 @@
 {% block title %}Všechna počítadla{% endblock %}
 
 {% block content %}
-<h2 style="margin-top:0;">Všechna počítadla ({{ counters|length }})</h2>
+<h2 class="content-heading">Všechna počítadla ({{ counters|length }})</h2>
 
 {% if counters %}
 <table class="counter-table">
@@ -22,14 +22,14 @@
             <td><a href="{% url 'counter_detail' counter.pk %}">{{ counter.name }}</a></td>
             <td>{{ counter.address|default:"—" }}</td>
             <td><span class="badge {{ counter.status }}">{{ counter.get_status_display }}</span></td>
-            <td><a class="btn btn-small detail-btn" style="display:inline-flex; color:#245dcc !important; text-decoration:none !important; background:#fff; border:1px solid #c9dafb;" href="{% url 'counter_detail' counter.pk %}">Otevřít detail</a></td>
-            <td style="color:var(--muted); font-size:13px;">{{ counter.updated_at|date:"d.m.Y H:i" }}</td>
+            <td><a class="btn btn-small detail-btn" href="{% url 'counter_detail' counter.pk %}">Otevřít detail</a></td>
+            <td class="counter-updated-at">{{ counter.updated_at|date:"d.m.Y H:i" }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<p style="color:var(--muted);">Zatím nejsou žádná počítadla. Přidejte první na mapě.</p>
+<p class="empty-state">Zatím nejsou žádná počítadla. Přidejte první na mapě.</p>
 <a class="btn" href="{% url 'map' %}">Přejít na mapu</a>
 {% endif %}
 {% endblock %}
