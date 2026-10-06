@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 
 from .models import Counter, CounterEvent
 
@@ -22,7 +23,23 @@ class CounterForm(forms.ModelForm):
         }
 
 
-class StatusUpdateForm(forms.ModelForm):
+class EventPhotoValidationMixin:
+    def clean_photo(self):
+        photo = self.cleaned_data.get('photo')
+        if not photo or not self.files.get('photo'):
+            return photo
+
+        if photo.size > 8 * 1024 * 1024:
+            raise ValidationError('Fotka může mít nejvýše 8 MB.')
+
+        width, height = photo.image.size
+        if width > 8000 or height > 8000 or width * height > 25_000_000:
+            raise ValidationError('Rozlišení fotky je příliš vysoké.')
+
+        return photo
+
+
+class StatusUpdateForm(EventPhotoValidationMixin, forms.ModelForm):
     """Форма для додавання нового запису в історію (зміна статусу)."""
 
     class Meta:
@@ -36,3 +53,9 @@ class StatusUpdateForm(forms.ModelForm):
             'status': 'Nový stav',
             'note': 'Komentář',
         }
+
+
+class CounterEventAdminForm(EventPhotoValidationMixin, forms.ModelForm):
+    class Meta:
+        model = CounterEvent
+        fields = '__all__'

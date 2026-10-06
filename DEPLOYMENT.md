@@ -20,8 +20,10 @@ Render může automaticky nasadit změny po pushi do připojené Git větve. Sam
 
 ## Lokální vývoj
 
-Lokálně aplikace používá SQLite a `DEBUG=True`. Produkční režim vyžaduje `SECRET_KEY`, `DATABASE_URL` a hostitele v `ALLOWED_HOSTS`; `render.yaml` tyto hodnoty nastavuje pro Render. Tajné hodnoty ani `.env` neukládej do GitHubu.
+Lokálně aplikace používá SQLite a `DEBUG=True`. Produkční režim vyžaduje `SECRET_KEY`, `DATABASE_URL` a platný hostitel. Render poskytuje hostname služby automaticky; vlastní doménu přidej přes proměnnou `ALLOWED_HOSTS`. Tajné hodnoty ani `.env` neukládej do GitHubu.
 
 ## Ochrana aplikace
 
-Všechny aplikační stránky vyžadují aktivní účet se zapnutým Staff status. Produkce používá HTTPS a bezpečné session/CSRF cookies. Zaměstnancům nastav dlouhá jedinečná hesla; minimální délka je 12 znaků. Přihlášení zatím nemá MFA ani ochranu proti opakovaným pokusům.
+Všechny aplikační stránky vyžadují aktivní účet se zapnutým Staff status. Přihlášení se po pěti chybných pokusech pro účet a IP adresu zablokuje na 30 minut. Produkce používá HTTPS a bezpečné session/CSRF cookies. Zaměstnancům nastav dlouhá jedinečná hesla; minimální délka je 12 znaků. Aplikace zatím nepodporuje MFA.
+
+Nahrávané fotky jsou omezené na 8 MB a 25 megapixelů. Pro veřejné nasazení nastav také limit velikosti požadavků na hostingu; aplikační validace sama neomezuje síťový provoz před přijetím souboru.

@@ -1,10 +1,12 @@
 from django.contrib import admin
 
+from .forms import CounterEventAdminForm
 from .models import Counter, CounterEvent
 
 
 class CounterEventInline(admin.TabularInline):
     model = CounterEvent
+    form = CounterEventAdminForm
     extra = 0
     readonly_fields = ('created_at',)
     ordering = ('-created_at',)
@@ -20,7 +22,9 @@ class CounterAdmin(admin.ModelAdmin):
 
 @admin.register(CounterEvent)
 class CounterEventAdmin(admin.ModelAdmin):
+    form = CounterEventAdminForm
     list_display = ('counter', 'status', 'actor', 'created_at')
     list_filter = ('status',)
     search_fields = ('counter__name', 'actor__username', 'actor__first_name', 'actor__last_name', 'note')
     ordering = ('-created_at',)
+    readonly_fields = ('created_at',)

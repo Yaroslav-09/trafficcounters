@@ -3,6 +3,7 @@ Nastavení projektu.
 Lokálně stačí výchozí hodnoty. Na Renderu se bere vše z proměnných prostředí.
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'axes',
     'counters',
 ]
 
@@ -61,7 +63,17 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'axes.middleware.AxesMiddleware',
 ]
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = timedelta(minutes=30)
+AXES_LOCKOUT_PARAMETERS = [['username', 'ip_address']]
 
 ROOT_URLCONF = 'trafficcounters.urls'
 
