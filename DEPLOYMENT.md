@@ -26,4 +26,6 @@ Lokálně aplikace používá SQLite a `DEBUG=True`. Produkční režim vyžaduj
 
 Všechny aplikační stránky vyžadují aktivní účet se zapnutým Staff status. Přihlášení se po pěti chybných pokusech pro účet a IP adresu zablokuje na 30 minut. Produkce používá HTTPS a bezpečné session/CSRF cookies. Zaměstnancům nastav dlouhá jedinečná hesla; minimální délka je 12 znaků. Aplikace zatím nepodporuje MFA.
 
-Nahrávané fotky jsou omezené na 8 MB a 25 megapixelů. Pro veřejné nasazení nastav také limit velikosti požadavků na hostingu; aplikační validace sama neomezuje síťový provoz před přijetím souboru.
+Admin účet vytvářej jen přes `python manage.py createsuperuser` (nebo Render shell). Migrace už neseedují žádný výchozí účet. Pokud na starší databázi zůstal seedovaný účet se slabým heslem, migrace `0005` ho deaktivuje — vytvoř nový silný účet a starý po ověření smaž v adminu.
+
+Nahrávané fotky jsou omezené na 8 MB, 25 megapixelů a formáty JPEG/PNG/GIF/WEBP. V produkci se fotky servírují jen přes přihlášený endpoint, ne jako veřejné `/media/`. Pro veřejné nasazení nastav také limit velikosti požadavků na hostingu; aplikační validace sama neomezuje síťový provoz před přijetím souboru.

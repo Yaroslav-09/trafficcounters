@@ -11,4 +11,6 @@ urlpatterns = [
     path('', include('counters.urls')),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# MEDIA jen lokálně při DEBUG. V produkci fotky jen přes autentizovaný view.
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

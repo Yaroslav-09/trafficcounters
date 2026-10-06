@@ -150,9 +150,10 @@ def counter_event_photo(request, pk):
     except OSError as error:
         raise Http404 from error
 
-    response = FileResponse(photo_file, content_type=content_type)
+    response = FileResponse(photo_file, content_type=content_type, as_attachment=False)
     response['X-Content-Type-Options'] = 'nosniff'
     response['Cache-Control'] = 'private, no-store'
+    response['Content-Disposition'] = 'inline'
     return response
 
 

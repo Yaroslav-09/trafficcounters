@@ -11,6 +11,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
+    {% if user.is_authenticated %}
     <header>
         <a class="brand" href="{% url 'map' %}">📍 Počítadla lidí</a>
         <nav class="header-nav">
@@ -19,15 +20,14 @@
                 <span class="nav-label-full">Všechna počítadla</span>
                 <span class="nav-label-short">Seznam</span>
             </a>
-            {% if user.is_authenticated %}
             <span class="header-username">{{ user.get_full_name|default:user.username }}</span>
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="btn secondary">Odhlásit</button>
             </form>
-            {% endif %}
         </nav>
     </header>
+    {% endif %}
 
     {% block full_content %}
     <div class="container">

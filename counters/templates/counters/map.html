@@ -327,7 +327,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     popup.appendChild(document.createElement('br'));
 
                     var detailLink = document.createElement('a');
-                    detailLink.href = c.url;
+                    if (typeof c.url === 'string' && c.url.charAt(0) === '/' && c.url.charAt(1) !== '/') {
+                        detailLink.href = c.url;
+                    } else {
+                        detailLink.href = '#';
+                    }
                     detailLink.textContent = 'Otevřít detail →';
                     popup.appendChild(detailLink);
                     marker.bindPopup(popup);
