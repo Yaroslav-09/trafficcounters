@@ -9,6 +9,21 @@
     <div id="map"></div>
 
     <div id="toolbar">
+        <section class="map-panel" aria-label="Ovládání mapy">
+            <div class="map-panel-heading">
+                <strong>Terén a parky</strong>
+                <span>Počítadla po celé ČR</span>
+            </div>
+            <label class="map-style-label" for="map-style-select">Mapový podklad</label>
+            <select id="map-style-select" aria-label="Mapový podklad">
+                <option value="osm">Cesty a parky</option>
+                <option value="topo">Terénní mapa</option>
+            </select>
+            <div class="map-navigation-actions">
+                <button id="locate-me-btn" class="btn secondary map-action-btn" type="button">◎ Moje poloha</button>
+                <button id="czechia-view-btn" class="btn secondary map-action-btn" type="button">Celá ČR</button>
+            </div>
+        </section>
         <button id="add-mode-btn" class="btn toolbar-btn">
             <span class="btn-label-full">➕ Přidat počítadlo</span>
             <span class="btn-label-short">➕ Přidat</span>
@@ -104,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Vrstva markerů — všechno je uvnitř mapy (ne HTML overlay přes pozadí)
     var countersLayer = L.layerGroup().addTo(map);
+    var userLocationMarker = null;
 
     // Několik zdrojů BEZ API klíče + automatická záloha.
     // Pořadí: nejdřív ověříme zkušební dlaždici (Praha), teprve pak ji použijeme.
@@ -161,6 +177,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     ];
 
+    var mapStyleSelect = document.getElementById('map-style-select');
+    var providerByStyle = { osm: 2, topo: 5 };
+
     var activeTiles = null;
     var pickGeneration = 0;
     var failedProviders = {};
@@ -190,6 +209,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.info('Mapa: ' + provider.name);
 
         layer.on('tileerror', function () {
+            if (layer !== activeTiles) return;
             if (failedProviders[index]) return;
             failedProviders[index] = true;
             console.warn('Mapa selhala (' + provider.name + '), zkouším zálohu…');
@@ -240,7 +260,46 @@ document.addEventListener('DOMContentLoaded', function () {
         img.src = url;
     }
 
-    pickProvider(0);
+    function selectMapStyle(style) {
+        var providerIndex = providerByStyle[style] || providerByStyle.osm;
+        failedProviders = {};
+        pickProvider(providerIndex);
+    }
+
+    mapStyleSelect.addEventListener('change', function () {
+        selectMapStyle(mapStyleSelect.value);
+    });
+    selectMapStyle(mapStyleSelect.value);
+
+    document.getElementById('czechia-view-btn').addEventListener('click', function () {
+        map.fitBounds(czechiaBounds, { padding: [24, 24], maxZoom: isMobile ? 7 : 8 });
+    });
+
+    document.getElementById('locate-me-btn').addEventListener('click', function () {
+        if (!navigator.geolocation) {
+            window.alert('Tento prohlížeč nepodporuje zjištění polohy.');
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(function (position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            if (!isWithinCzechia(lat, lng)) {
+                window.alert('Vaše poloha je mimo Českou republiku.');
+                return;
+            }
+            if (userLocationMarker) map.removeLayer(userLocationMarker);
+            userLocationMarker = L.circleMarker([lat, lng], {
+                radius: 8,
+                color: '#fff',
+                weight: 3,
+                fillColor: '#2563eb',
+                fillOpacity: 1
+            }).addTo(map).bindPopup('Vaše poloha');
+            map.setView([lat, lng], Math.max(map.getZoom(), 15));
+        }, function () {
+            window.alert('Polohu se nepodařilo zjistit. Povolte ji v prohlížeči a zkuste to znovu.');
+        }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+    });
 
     function refreshMapSize() {
         map.invalidateSize({ pan: false });

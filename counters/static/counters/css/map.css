@@ -43,6 +43,31 @@ body.map-page header {
 #toolbar > * {
     pointer-events: auto;
 }
+.map-panel {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid rgba(24, 39, 58, .1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 4px 16px rgba(20, 35, 50, .18);
+}
+.map-panel-heading { display: grid; gap: 2px; }
+.map-panel-heading strong { color: #173b2c; font-size: 14px; }
+.map-panel-heading span { color: #64756c; font-size: 12px; }
+.map-style-label { margin: 2px 0 -5px; font-size: 11px; font-weight: 600; color: #53645a; }
+#map-style-select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #d5dfd7;
+    border-radius: 8px;
+    background: #f8fbf8;
+    color: #22372c;
+    font: inherit;
+    font-size: 13px;
+}
+.map-navigation-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.map-action-btn { padding: 8px 7px; font-size: 12px; white-space: nowrap; }
 .toolbar-btn {
     box-shadow: 0 2px 6px rgba(0,0,0,.15);
     width: 100%;
@@ -95,42 +120,53 @@ body.map-page header {
 
 @media (max-width: 640px) {
     #toolbar {
-        top: auto;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-        left: 12px;
-        right: 12px;
+        inset: 0;
         max-width: none;
-        flex-direction: row;
-        align-items: flex-end;
-        gap: 8px;
+        display: block;
+        pointer-events: none;
     }
-    .toolbar-btn {
+    .map-panel {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: min(196px, calc(100% - 20px));
+        gap: 6px;
+        padding: 10px;
+    }
+    .map-panel-heading strong { font-size: 13px; }
+    .map-panel-heading span { font-size: 11px; }
+    #add-mode-btn {
+        position: absolute;
+        left: 10px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
         width: auto;
-        flex: 0 0 auto;
+        max-width: calc(100% - 155px);
         padding: 12px 14px;
         font-size: 14px;
     }
-    .btn-label-full { display: none; }
-    .btn-label-short { display: inline; }
     #legend {
-        margin-left: auto;
+        position: absolute;
+        right: 10px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+        margin: 0;
         padding: 8px 10px;
         font-size: 11px;
     }
+    .btn-label-full { display: none; }
+    .btn-label-short { display: inline; }
     #add-hint {
         position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 100%;
+        left: 10px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 66px);
         margin-bottom: 8px;
-        max-width: none;
+        max-width: min(280px, calc(100% - 20px));
     }
     #map-messages {
         top: auto;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
-        left: 12px;
-        right: 12px;
-        max-width: none;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 66px);
+        left: 10px;
+        right: 10px;
+        max-width: calc(100% - 20px);
     }
 }
 .cancel-add-mode-btn { margin-top: 6px; padding: 4px 10px; }
