@@ -1,35 +1,150 @@
 {% extends 'counters/base.html' %}
 
-{% block title %}Všechna počítadla{% endblock %}
+{% block title %}Správa sčítačů{% endblock %}
 
 {% block content %}
-<h2 class="content-heading">Všechna počítadla ({{ counters|length }})</h2>
+<div class="counter-list-heading">
+    <div>
+        <h2 class="content-heading">Správa sčítačů</h2>
+        <p class="page-intro">Vyhledejte zařízení, filtrujte je podle klienta a stavu nebo zkontrolujte termíny.</p>
+    </div>
+    <a class="btn" href="{% url 'map' %}">Přidat sčítač na mapě</a>
+</div>
+
+<div class="counter-status-summary" aria-label="Přehled ověření a provozních stavů">
+    <a href="?check=verified" class="counter-summary-card verified-summary">
+        <span>Ověřené</span><strong>{{ verification_totals.verified }}</strong>
+    </a>
+    <a href="?check=unverified" class="counter-summary-card unverified-summary">
+        <span>Bez ověření</span><strong>{{ verification_totals.unverified }}</strong>
+    </a>
+    <a href="?check=overdue" class="counter-summary-card overdue-summary">
+        <span>Po termínu</span><strong>{{ verification_totals.overdue }}</strong>
+    </a>
+    <a href="?status=working" class="counter-summary-card working-summary">
+        <span>V provozu</span><strong>{{ status_totals.working }}</strong>
+    </a>
+    <a href="?status=defect" class="counter-summary-card defect-summary">
+        <span>V poruše</span><strong>{{ status_totals.defect }}</strong>
+    </a>
+    <a href="{% url 'counter_list' %}" class="counter-summary-card total-summary">
+        <span>Celkem</span><strong>{{ total_counters }}</strong>
+    </a>
+</div>
+<p class="verification-explainer">Ověřený sčítač má zaznamenanou kontrolu, která není po termínu. Provozní stav je samostatný — ověřený sčítač může být zároveň v poruše. Pokud další termín není nastaven, zobrazí se to v tabulce.</p>
+
+<form method="get" class="counter-filters">
+    <label class="counter-search-field">Hledat
+        <input type="search" name="q" value="{{ filters.q }}" placeholder="Název, adresa, klient…">
+    </label>
+    <label>Stav
+        <select name="status">
+            <option value="">Všechny stavy</option>
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Klient
+        <select name="client">
+            <option value="">Všichni klienti</option>
+            {% for client in clients %}
+                <option value="{{ client.pk }}" {% if filters.client == client.pk|stringformat:"s" %}selected{% endif %}>{{ client.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Typ sčítače
+        <select name="type">
+            <option value="">Všechny typy</option>
+            {% for counter_type in counter_types %}
+                <option value="{{ counter_type.pk }}" {% if filters.type == counter_type.pk|stringformat:"s" %}selected{% endif %}>{{ counter_type.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Kontrola
+        <select name="check">
+            <option value="">Všechny kontroly</option>
+            <option value="verified" {% if filters.check == 'verified' %}selected{% endif %}>Aktuálně ověřené</option>
+            <option value="unverified" {% if filters.check == 'unverified' %}selected{% endif %}>Bez ověření</option>
+            <option value="overdue" {% if filters.check == 'overdue' %}selected{% endif %}>Po termínu</option>
+            <option value="due" {% if filters.check == 'due' %}selected{% endif %}>Chybí nebo je po termínu</option>
+        </select>
+    </label>
+    <label>Řadit podle
+        <select name="sort">
+            <option value="name" {% if filters.sort == 'name' %}selected{% endif %}>Názvu A–Z</option>
+            <option value="-name" {% if filters.sort == '-name' %}selected{% endif %}>Názvu Z–A</option>
+            <option value="status" {% if filters.sort == 'status' %}selected{% endif %}>Stavu</option>
+            <option value="client" {% if filters.sort == 'client' %}selected{% endif %}>Klienta A–Z</option>
+            <option value="type" {% if filters.sort == 'type' %}selected{% endif %}>Typu A–Z</option>
+            <option value="verified_newest" {% if filters.sort == 'verified_newest' %}selected{% endif %}>Nedávno ověřených</option>
+            <option value="verified_oldest" {% if filters.sort == 'verified_oldest' %}selected{% endif %}>Nejdéle neověřených</option>
+            <option value="updated" {% if filters.sort == 'updated' %}selected{% endif %}>Naposledy změněných</option>
+            <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Nejdéle beze změny</option>
+        </select>
+    </label>
+    <div class="counter-filter-actions">
+        <button class="btn" type="submit">Použít filtry</button>
+        <a class="btn secondary" href="{% url 'counter_list' %}">Vymazat</a>
+    </div>
+</form>
+
+<p class="counter-result-count">Nalezeno {{ page_obj.paginator.count }} sčítačů</p>
 
 {% if counters %}
-<table class="counter-table">
-    <thead>
-        <tr>
-            <th>Název</th>
-            <th>Adresa</th>
-            <th>Stav</th>
-            <th>Akce</th>
-            <th>Aktualizováno</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for counter in counters %}
-        <tr>
-            <td><a href="{% url 'counter_detail' counter.pk %}">{{ counter.name }}</a></td>
-            <td>{{ counter.address|default:"—" }}</td>
-            <td><span class="badge {{ counter.status }}">{{ counter.get_status_display }}</span></td>
-            <td><a class="btn btn-small detail-btn" href="{% url 'counter_detail' counter.pk %}">Otevřít detail</a></td>
-            <td class="counter-updated-at">{{ counter.updated_at|date:"d.m.Y H:i" }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="counter-table-scroll">
+    <table class="counter-table">
+        <thead>
+            <tr><th>Název</th><th>Ověření</th><th>Provozní stav</th><th>Klient / typ</th><th>Další kontrola</th><th>Adresa</th><th>Aktualizováno</th><th>Detail</th></tr>
+        </thead>
+        <tbody>
+            {% for counter in counters %}
+            <tr>
+                <td><a href="{% url 'counter_detail' counter.pk %}">{{ counter.name }}</a></td>
+                <td>
+                    {% if not counter.last_inspection_date %}
+                        <span class="inspection-state inspection-missing">Bez ověření</span>
+                    {% else %}
+                        {% if counter.last_inspection_result == 'ok' %}
+                            <span class="badge working">Ověřeno · v pořádku</span>
+                        {% else %}
+                            <span class="badge defect">Ověřeno · zjištěna závada</span>
+                        {% endif %}
+                        <div class="table-muted">{{ counter.last_inspection_date|date:"d.m.Y" }}{% if counter.last_inspector %} · {{ counter.last_inspector }}{% endif %}</div>
+                        {% if counter.next_inspection_date and counter.next_inspection_date <= today %}
+                            <span class="inspection-state inspection-overdue">Ověření po termínu</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td><span class="badge {{ counter.status }}">{{ counter.get_status_display }}</span></td>
+                <td>{{ counter.client|default:"Bez klienta" }}<br><span class="table-muted">{{ counter.counter_type|default:"Typ neuveden" }}</span></td>
+                <td>
+                    {% if counter.last_inspection_date and counter.next_inspection_date %}
+                        {% if counter.next_inspection_date <= today %}<span class="inspection-state inspection-overdue">Po termínu</span>{% endif %}
+                        {{ counter.next_inspection_date|date:"d.m.Y" }}
+                    {% elif counter.last_inspection_date %}
+                        <span class="table-muted">Termín nenastaven</span>
+                    {% else %}
+                        <span class="table-muted">Po ověření doplnit</span>
+                    {% endif %}
+                </td>
+                <td>{{ counter.address|default:"—" }}</td>
+                <td class="counter-updated-at">{{ counter.updated_at|date:"d.m.Y H:i" }}</td>
+                <td><a class="btn btn-small detail-btn" href="{% url 'counter_detail' counter.pk %}">Otevřít</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% else %}
-<p class="empty-state">Zatím nejsou žádná počítadla. Přidejte první na mapě.</p>
-<a class="btn" href="{% url 'map' %}">Přejít na mapu</a>
+<p class="empty-state">Žádný sčítač neodpovídá vybraným filtrům.</p>
+{% endif %}
+
+{% if page_obj.has_other_pages %}
+<nav class="pagination" aria-label="Stránkování">
+    {% if page_obj.has_previous %}<a class="btn secondary" href="?{{ filter_query }}{% if filter_query %}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Předchozí</a>{% endif %}
+    <span>Strana {{ page_obj.number }} z {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="btn secondary" href="?{{ filter_query }}{% if filter_query %}&amp;{% endif %}page={{ page_obj.next_page_number }}">Další</a>{% endif %}
+</nav>
 {% endif %}
 {% endblock %}

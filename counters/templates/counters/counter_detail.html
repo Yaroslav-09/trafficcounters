@@ -11,6 +11,11 @@
     <span class="badge {{ counter.status }}">{{ counter.get_status_display }}</span>
 </div>
 
+<div class="counter-ownership">
+    <div><strong>Klient:</strong> {{ counter.client|default:"Nepřiřazen" }}</div>
+    <div><strong>Typ:</strong> {{ counter.counter_type|default:"Neuveden" }}</div>
+</div>
+
 {% if counter.description %}
 <p class="counter-description">{{ counter.description }}</p>
 {% endif %}
@@ -40,6 +45,38 @@
     {% endfor %}
     <button type="submit" class="btn counter-save-button">Uložit stav</button>
 </form>
+
+<hr class="section-divider">
+
+<h3>Kontrola sčítače</h3>
+<form method="post" class="inspection-form">
+    {% csrf_token %}
+    {% for field in inspection_form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="field-error">{{ field.errors|striptags }}</div>{% endif %}
+    {% endfor %}
+    <button type="submit" name="inspection_submit" value="1" class="btn counter-save-button">Uložit kontrolu</button>
+</form>
+
+<h3>Historie kontrol ({{ inspections|length }})</h3>
+{% if inspections %}
+    {% for inspection in inspections %}
+    <div class="inspection-history-item">
+        {% if inspection.result == 'ok' %}
+            <span class="badge working">{{ inspection.get_result_display }}</span>
+        {% else %}
+            <span class="badge defect">{{ inspection.get_result_display }}</span>
+        {% endif %}
+        <span class="meta">{{ inspection.inspected_at|date:"d.m.Y" }}</span>
+        {% if inspection.next_inspection_at %}<div class="meta">Další kontrola: {{ inspection.next_inspection_at|date:"d.m.Y" }}</div>{% endif %}
+        {% if inspection.actor %}<div class="meta">Kontroloval(a): {{ inspection.actor.get_full_name|default:inspection.actor.username }}</div>{% endif %}
+        {% if inspection.note %}<div>{{ inspection.note }}</div>{% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+    <p class="empty-state">Zatím nebyla provedena žádná kontrola.</p>
+{% endif %}
 
 <hr class="section-divider">
 

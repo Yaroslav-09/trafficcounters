@@ -1,25 +1,22 @@
 # Лічильники людей — Django-проєкт
 
-Сайт для фірми, яка має лічильники (сенсори) підрахунку людей.
-Показує їх на карті, дозволяє додавати нові, змінювати статус
-(працює / несправний / вимкнений) і зберігає повну історію
-обслуговування кожного лічильника.
+Interní evidence sčítačů pro firmu: mapa ČR, klienti, typy zařízení,
+jejich aktuální stav a historie kontrol i změn.
 
 ## Як це влаштовано (логіка)
 
-- `Counter` — сам лічильник: назва, координати, поточний статус, опис.
-- `CounterEvent` — запис в історії. Кожна зміна статусу (додали дефект,
-  полагодили, знову ввели в роботу) — це окремий рядок з датою і
-  коментарем. Поле `Counter.status` завжди дорівнює статусу останньої
-  події — так один раз оновлюєш статус, і карта, і історія лишаються
-  синхронізованими.
-- Додавання лічильника: тиснеш кнопку "Додати лічильник" на карті →
-  клікаєш по місцю на карті → відкривається форма з уже підставленими
-  координатами → зберігаєш.
-- Картка лічильника (`/counters/<id>/`): інфо, кнопка видалення,
-  форма зміни статусу, і список усієї історії.
-- Усе це також доступне через вбудовану адмінку Django (`/admin/`) —
-  зручно для швидкого масового редагування чи перегляду.
+- `Counter` eviduje sčítač, jeho stav, polohu, klienta a typ zařízení.
+- `Client` a `CounterType` jsou spravovatelné v administraci `/admin/`.
+  Klienty ani typy se nemažou, pokud jsou přiřazené ke sčítači; lze je deaktivovat.
+- Seznam sčítačů umožňuje hledat, filtrovat podle stavu/klienta/typu a termínu
+  kontroly, řadit a procházet výsledky po stránkách. Mapa má filtr stavů;
+  vnější kroužek značky ukazuje ověření (modrý = ověřeno, šedý = chybí,
+  oranžový = po termínu).
+- `CounterInspection` ukládá datum, výsledek, poznámku a termín další kontroly.
+  Výsledek „Zjištěna závada“ přepne sčítač do poruchy; výsledek „V pořádku“
+  jej vrátí do provozu. Změna se zároveň zaznamená do historie stavu.
+- Přístup k provozním stránkám mají pouze aktivní uživatelé označení jako
+  `Staff`; jejich účty se spravují přes Django administraci.
 
 ## Запуск локально в PyCharm
 
@@ -60,9 +57,8 @@
 для статики, `gunicorn` у requirements). Прості безкоштовні/дешеві
 варіанти для старту:
 
-- **Render.com** — підключаєш GitHub-репозиторій, вибираєш "Web
-  Service", команда старту `gunicorn trafficcounters.wsgi`,
-  є безкоштовний план.
+- **Render.com** — Blueprint у `render.yaml`; для виробничого
+  використання обери платні сервіси з постійним сховищем та резервними копіями.
 - **Railway.app** — так само, деплой прямо з GitHub, автоматично
   визначає Procfile.
 - **PythonAnywhere** — простий безкоштовний хостинг саме для
@@ -76,12 +72,10 @@
 3. Установи `ALLOWED_HOSTS` для реального домену та `CSRF_TRUSTED_ORIGINS` для HTTPS-адреси.
 4. Виконай `python manage.py collectstatic` і застосуй міграції.
 
-## Що можна доточити пізніше
+## Що варто розглянути перед виробничим запуском
 
-- Розділення прав між працівниками й адміністраторами (зараз усі
-  активні користувачі зі статусом Staff мають однакові права).
-- MFA для працівників і адміністраторів.
-- Фільтр на карті за статусом.
-- Автоматичні дані з самих лічильників (кількість людей за день) —
-  зараз проєкт лише про облік і стан обладнання, без прийому даних
-  трафіку.
+- Rozdělení práv mezi běžné pracovníky, editory a administrátory.
+- MFA nebo přihlášení přes firemní SSO a ochrana proti opakovaným pokusům o přihlášení.
+- Zálohy databáze i fotografií a ověřený postup obnovy.
+- Automatická data ze sčítačů (počty osob za den) — současná aplikace
+  eviduje zařízení a jejich údržbu, nepřijímá jejich provozní statistiky.

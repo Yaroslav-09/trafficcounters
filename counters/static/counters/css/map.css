@@ -56,7 +56,7 @@ body.map-page header {
 .map-panel-heading strong { color: #173b2c; font-size: 14px; }
 .map-panel-heading span { color: #64756c; font-size: 12px; }
 .map-style-label { margin: 2px 0 -5px; font-size: 11px; font-weight: 600; color: #53645a; }
-#map-style-select {
+#map-status-filter {
     width: 100%;
     padding: 8px 10px;
     border: 1px solid #d5dfd7;
@@ -66,7 +66,7 @@ body.map-page header {
     font: inherit;
     font-size: 13px;
 }
-.map-navigation-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.map-navigation-actions { display: grid; grid-template-columns: 1fr; gap: 6px; }
 .map-action-btn { padding: 8px 7px; font-size: 12px; white-space: nowrap; }
 .toolbar-btn {
     box-shadow: 0 2px 6px rgba(0,0,0,.15);
@@ -88,6 +88,20 @@ body.map-page header {
     box-shadow: 0 2px 6px rgba(0,0,0,.15);
     font-size: 12px;
 }
+.legend-group-label { margin: 0 0 5px; color: #53645a; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.verification-legend-heading { margin-top: 9px; }
+.verification-key {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin: 0 7px 0 2px;
+    border: 3px solid;
+    border-radius: 50%;
+    vertical-align: -2px;
+}
+.verified-key { border-color: #2563eb; }
+.unverified-key { border-color: #64748b; }
+.overdue-key { border-color: #d97706; }
 #map-messages {
     position: absolute;
     top: 12px;

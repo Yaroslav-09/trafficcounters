@@ -11,17 +11,18 @@
     <div id="toolbar">
         <section class="map-panel" aria-label="Ovládání mapy">
             <div class="map-panel-heading">
-                <strong>Terén a parky</strong>
-                <span>Počítadla po celé ČR</span>
+                <strong>Přehled sčítačů</strong>
+                <span>Stav a umístění zařízení</span>
             </div>
-            <label class="map-style-label" for="map-style-select">Mapový podklad</label>
-            <select id="map-style-select" aria-label="Mapový podklad">
-                <option value="osm">Cesty a parky</option>
-                <option value="topo">Terénní mapa</option>
+            <label class="map-style-label" for="map-status-filter">Zobrazit sčítače</label>
+            <select id="map-status-filter" aria-label="Filtrovat sčítače podle stavu">
+                <option value="">Všechny stavy</option>
+                <option value="working">Jen v provozu</option>
+                <option value="defect">Jen v poruše</option>
+                <option value="disabled">Jen vypnuté</option>
             </select>
             <div class="map-navigation-actions">
                 <button id="locate-me-btn" class="btn secondary map-action-btn" type="button">◎ Moje poloha</button>
-                <button id="czechia-view-btn" class="btn secondary map-action-btn" type="button">Celá ČR</button>
             </div>
         </section>
         <button id="add-mode-btn" class="btn toolbar-btn">
@@ -33,9 +34,14 @@
             <br><button id="cancel-add-mode" class="btn secondary cancel-add-mode-btn">Zrušit</button>
         </div>
         <div id="legend">
+            <div class="legend-group-label">Provozní stav</div>
             <div><span class="badge working">●</span> V provozu</div>
             <div><span class="badge defect">●</span> Porucha</div>
             <div><span class="badge disabled">●</span> Vypnuto</div>
+            <div class="legend-group-label verification-legend-heading">Ověření · barva vnějšího kroužku</div>
+            <div><span class="verification-key verified-key"></span> Ověřeno</div>
+            <div><span class="verification-key unverified-key"></span> Bez ověření</div>
+            <div><span class="verification-key overdue-key"></span> Po termínu</div>
         </div>
     </div>
 
@@ -125,22 +131,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Pořadí: nejdřív ověříme zkušební dlaždici (Praha), teprve pak ji použijeme.
     var tileProviders = [
         {
-            name: 'Esri Street',
-            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-            options: {
-                maxZoom: 19,
-                attribution: 'Tiles &copy; Esri &mdash; Esri, OpenStreetMap a další'
-            }
-        },
-        {
-            name: 'Esri Topo',
-            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-            options: {
-                maxZoom: 19,
-                attribution: 'Tiles &copy; Esri'
-            }
-        },
-        {
             name: 'OSM France',
             url: 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
             options: {
@@ -165,20 +155,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 maxZoom: 19,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }
-        },
-        {
-            name: 'OpenTopoMap',
-            url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-            options: {
-                maxZoom: 17,
-                subdomains: 'abc',
-                attribution: 'Map data: &copy; OpenStreetMap, SRTM | Map style: &copy; OpenTopoMap'
-            }
         }
     ];
-
-    var mapStyleSelect = document.getElementById('map-style-select');
-    var providerByStyle = { osm: 2, topo: 5 };
 
     var activeTiles = null;
     var pickGeneration = 0;
@@ -260,20 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
         img.src = url;
     }
 
-    function selectMapStyle(style) {
-        var providerIndex = providerByStyle[style] || providerByStyle.osm;
-        failedProviders = {};
-        pickProvider(providerIndex);
-    }
-
-    mapStyleSelect.addEventListener('change', function () {
-        selectMapStyle(mapStyleSelect.value);
-    });
-    selectMapStyle(mapStyleSelect.value);
-
-    document.getElementById('czechia-view-btn').addEventListener('click', function () {
-        map.fitBounds(czechiaBounds, { padding: [24, 24], maxZoom: isMobile ? 7 : 8 });
-    });
+    pickProvider(0);
 
     document.getElementById('locate-me-btn').addEventListener('click', function () {
         if (!navigator.geolocation) {
@@ -342,6 +307,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function loadCounters() {
+        var statusFilter = document.getElementById('map-status-filter').value;
         fetch("{% url 'counters_json' %}", { credentials: 'same-origin' })
             .then(function (r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -355,8 +321,21 @@ document.addEventListener('DOMContentLoaded', function () {
                     var lat = Number(c.lat);
                     var lng = Number(c.lng);
                     if (!isFinite(lat) || !isFinite(lng) || !isWithinCzechia(lat, lng)) return;
+                    if (statusFilter && c.status !== statusFilter) return;
 
                     // circleMarker = bod na souřadnicích (ne HTML prvek přes mapu)
+                    var verificationColor = c.verification_overdue
+                        ? '#d97706'
+                        : (c.is_verified ? '#2563eb' : '#64748b');
+                    var verificationRing = L.circleMarker([lat, lng], {
+                        radius: markerRadius + 5,
+                        color: verificationColor,
+                        weight: 3,
+                        fillOpacity: 0,
+                        interactive: false
+                    });
+                    countersLayer.addLayer(verificationRing);
+
                     var marker = L.circleMarker([lat, lng], {
                         radius: markerRadius,
                         color: '#fff',
@@ -379,10 +358,44 @@ document.addEventListener('DOMContentLoaded', function () {
                         popup.appendChild(address);
                     }
 
+                    if (c.client || c.counter_type) {
+                        popup.appendChild(document.createElement('br'));
+                        var ownership = document.createElement('span');
+                        ownership.textContent = [c.client, c.counter_type].filter(Boolean).join(' · ');
+                        popup.appendChild(ownership);
+                    }
+
                     popup.appendChild(document.createElement('br'));
                     var status = document.createElement('span');
                     status.textContent = 'Stav: ' + c.status_display;
                     popup.appendChild(status);
+                    popup.appendChild(document.createElement('br'));
+
+                    var verification = document.createElement('span');
+                    if (!c.last_inspection_date) {
+                        verification.textContent = 'Ověření: dosud neověřeno';
+                    } else {
+                        var inspectedOn = new Date(c.last_inspection_date + 'T00:00:00')
+                            .toLocaleDateString('cs-CZ');
+                        verification.textContent = 'Ověřeno: ' + inspectedOn + ' · ' +
+                            (c.last_inspection_result_display || 'výsledek neuveden');
+                        if (c.last_inspector) verification.textContent += ' · ' + c.last_inspector;
+                    }
+                    popup.appendChild(verification);
+                    if (c.next_inspection_date) {
+                        popup.appendChild(document.createElement('br'));
+                        var nextInspection = document.createElement('span');
+                        var nextDate = new Date(c.next_inspection_date + 'T00:00:00')
+                            .toLocaleDateString('cs-CZ');
+                        nextInspection.textContent = 'Další kontrola: ' + nextDate +
+                            (c.verification_overdue ? ' · po termínu' : '');
+                        popup.appendChild(nextInspection);
+                    } else if (c.last_inspection_date) {
+                        popup.appendChild(document.createElement('br'));
+                        var noNextDate = document.createElement('span');
+                        noNextDate.textContent = 'Další termín není nastaven';
+                        popup.appendChild(noNextDate);
+                    }
                     popup.appendChild(document.createElement('br'));
 
                     var detailLink = document.createElement('a');
@@ -404,6 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
+    document.getElementById('map-status-filter').addEventListener('change', loadCounters);
     map.whenReady(loadCounters);
 });
 </script>

@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from .models import Counter, CounterEvent
+from .models import Client, Counter, CounterEvent, CounterInspection, CounterType
 
 # Přibližný bounding box ČR (stejný jako na mapě).
 CZECHIA_LAT_MIN, CZECHIA_LAT_MAX = 48.35, 51.15
@@ -12,7 +12,10 @@ ALLOWED_IMAGE_FORMATS = frozenset({'JPEG', 'PNG', 'GIF', 'WEBP'})
 class CounterForm(forms.ModelForm):
     class Meta:
         model = Counter
-        fields = ['name', 'address', 'latitude', 'longitude', 'status', 'description']
+        fields = [
+            'name', 'client', 'counter_type', 'address', 'latitude', 'longitude',
+            'status', 'description',
+        ]
         widgets = {
             'latitude': forms.NumberInput(attrs={'step': 'any', 'readonly': 'readonly'}),
             'longitude': forms.NumberInput(attrs={'step': 'any', 'readonly': 'readonly'}),
@@ -20,12 +23,19 @@ class CounterForm(forms.ModelForm):
         }
         labels = {
             'name': 'Název počítadla',
+            'client': 'Klient, kterému sčítač patří',
+            'counter_type': 'Typ sčítače',
             'address': 'Adresa / orientační bod',
             'latitude': 'Zeměpisná šířka',
             'longitude': 'Zeměpisná délka',
             'status': 'Počáteční stav',
             'description': 'Popis',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['client'].queryset = Client.objects.filter(is_active=True)
+        self.fields['counter_type'].queryset = CounterType.objects.filter(is_active=True)
 
     def clean_latitude(self):
         lat = self.cleaned_data['latitude']
@@ -82,6 +92,25 @@ class StatusUpdateForm(EventPhotoValidationMixin, forms.ModelForm):
             'photo': forms.ClearableFileInput(attrs={'accept': 'image/jpeg,image/png,image/gif,image/webp'}),
             'note': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Např.: vyměněn senzor, nyní funguje správně'}),
         }
+
+
+class CounterInspectionForm(forms.ModelForm):
+    class Meta:
+        model = CounterInspection
+        fields = ['inspected_at', 'result', 'note', 'next_inspection_at']
+        widgets = {
+            'inspected_at': forms.DateInput(attrs={'type': 'date'}),
+            'next_inspection_at': forms.DateInput(attrs={'type': 'date'}),
+            'note': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        inspected_at = cleaned_data.get('inspected_at')
+        next_inspection_at = cleaned_data.get('next_inspection_at')
+        if inspected_at and next_inspection_at and next_inspection_at < inspected_at:
+            self.add_error('next_inspection_at', 'Další kontrola nemůže být před datem této kontroly.')
+        return cleaned_data
         labels = {
             'status': 'Nový stav',
             'note': 'Komentář',
