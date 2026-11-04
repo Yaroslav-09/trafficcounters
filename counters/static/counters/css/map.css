@@ -118,6 +118,9 @@ body.map-page header {
 }
 .leaflet-popup-content a {
     display: inline-block;
+    min-height: 40px;
+    box-sizing: border-box;
+    align-content: center;
     margin-top: 8px;
     padding: 7px 10px;
     border: 1px solid #c9dafb;
@@ -141,30 +144,33 @@ body.map-page header {
     }
     .map-panel {
         position: absolute;
-        top: 10px;
-        left: 10px;
+        top: calc(env(safe-area-inset-top, 0px) + 8px);
+        left: calc(env(safe-area-inset-left, 0px) + 8px);
         width: min(196px, calc(100% - 20px));
         gap: 6px;
-        padding: 10px;
+        padding: 9px;
     }
     .map-panel-heading strong { font-size: 13px; }
     .map-panel-heading span { font-size: 11px; }
     #add-mode-btn {
         position: absolute;
-        left: 10px;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+        left: calc(env(safe-area-inset-left, 0px) + 10px);
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
         width: auto;
         max-width: calc(100% - 155px);
-        padding: 12px 14px;
+        min-height: 44px;
+        padding: 10px 13px;
         font-size: 14px;
     }
     #legend {
         position: absolute;
-        right: 10px;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+        right: calc(env(safe-area-inset-right, 0px) + 10px);
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
         margin: 0;
         padding: 8px 10px;
         font-size: 11px;
+        max-height: min(32dvh, 230px);
+        overflow-y: auto;
     }
     .btn-label-full { display: none; }
     .btn-label-short { display: inline; }
@@ -182,6 +188,16 @@ body.map-page header {
         right: 10px;
         max-width: calc(100% - 20px);
     }
+    .leaflet-top.leaflet-right { top: 6px; right: 8px; }
+    .leaflet-control-zoom a {
+        width: 40px !important;
+        height: 40px !important;
+        line-height: 40px !important;
+        font-size: 20px !important;
+    }
+    .leaflet-popup-content { max-width: min(240px, calc(100vw - 72px)); font-size: 14px; line-height: 1.45; }
+    .leaflet-popup-content-wrapper { border-radius: 11px; }
+    .leaflet-popup-content a { min-height: 44px; padding: 9px 12px; }
 }
 .cancel-add-mode-btn { margin-top: 6px; padding: 4px 10px; }
 #legend > div + div { margin-top: 4px; }

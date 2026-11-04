@@ -56,7 +56,6 @@
 {% endblock %}
 
 {% block extra_head %}
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="stylesheet" href="{% static 'counters/css/map.css' %}">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -89,27 +88,11 @@ document.addEventListener('DOMContentLoaded', function () {
         minZoom: isMobile ? 6 : 7,
     });
 
-    // Zjednodušený obrys České republiky (souřadnice jsou [lat, lng]).
-    var czechiaBorder = [
-        [48.596982, 16.960288], [48.785808, 16.499283], [48.733899, 16.029647],
-        [49.039074, 15.253416], [48.964402, 14.901447], [48.555305, 14.338898],
-        [48.877172, 13.595946], [49.307068, 13.031329], [49.547415, 12.521024],
-        [49.969121, 12.415191], [50.266338, 12.240111], [50.484076, 12.966837],
-        [50.733234, 13.338132], [50.926918, 14.056228], [51.117268, 14.307013],
-        [51.002339, 14.570718], [51.106674, 15.016996], [50.784730, 15.490972],
-        [50.697733, 16.238627], [50.422607, 16.176253], [50.215747, 16.719476],
-        [50.473974, 16.868769], [50.362146, 17.554567], [50.049038, 17.649445],
-        [49.988629, 18.392914], [49.496230, 18.853144], [49.495015, 18.554971],
-        [49.315001, 18.399994], [49.271515, 18.170498], [49.043983, 18.104973],
-        [48.996493, 17.913512], [48.903475, 17.886485], [48.800019, 17.545007],
-        [48.816969, 17.101985]
-    ];
-
     function isValidCoordinates(lat, lng) {
         return isFinite(lat) && isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
     }
 
-    L.control.zoom({ position: isMobile ? 'bottomright' : 'topleft' }).addTo(map);
+    L.control.zoom({ position: isMobile ? 'topright' : 'topleft' }).addTo(map);
 
     // Vrstva markerů — všechno je uvnitř mapy (ne HTML overlay přes pozadí)
     var countersLayer = L.layerGroup().addTo(map);
@@ -298,7 +281,8 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(function (data) {
                 countersLayer.clearLayers();
-                var markerRadius = isMobile ? 12 : 9;
+                var markerRadius = isMobile ? 6.5 : 8;
+                var touchRadius = isMobile ? 14 : 11;
 
                 (data.counters || []).forEach(function (c) {
                     var lat = Number(c.lat);
@@ -311,21 +295,24 @@ document.addEventListener('DOMContentLoaded', function () {
                         ? '#d97706'
                         : (c.is_verified ? '#2563eb' : '#64748b');
                     var verificationRing = L.circleMarker([lat, lng], {
-                        radius: markerRadius + 5,
+                        radius: isMobile ? touchRadius : markerRadius + 4,
                         color: verificationColor,
-                        weight: 3,
-                        fillOpacity: 0,
-                        interactive: false
+                        weight: isMobile ? 2 : 2.5,
+                        fill: true,
+                        fillColor: '#000',
+                        fillOpacity: 0.001,
+                        interactive: true,
+                        bubblingMouseEvents: false
                     });
                     countersLayer.addLayer(verificationRing);
 
                     var marker = L.circleMarker([lat, lng], {
                         radius: markerRadius,
                         color: '#fff',
-                        weight: 2,
+                        weight: isMobile ? 1.5 : 2,
                         fillColor: c.color,
                         fillOpacity: 0.95,
-                        interactive: true
+                        interactive: false
                     });
 
                     // Keep stored user text out of popup HTML to prevent XSS.
@@ -389,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     detailLink.textContent = 'Otevřít detail →';
                     popup.appendChild(detailLink);
-                    marker.bindPopup(popup);
+                    verificationRing.bindPopup(popup);
                     countersLayer.addLayer(marker);
                 });
 

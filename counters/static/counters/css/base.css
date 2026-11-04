@@ -265,21 +265,24 @@ input[type=file]::file-selector-button:hover { background: #f1f5fb; }
 
 @media (max-width: 640px) {
     header {
-        padding: 10px 12px;
-        gap: 8px;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        padding: 8px 10px;
+        gap: 6px;
     }
     header a.brand {
         font-size: 15px;
     }
     .header-nav {
+        width: 100%;
         gap: 6px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
+        justify-content: space-between;
     }
     .header-nav .btn {
-        padding: 7px 10px;
-        font-size: 13px;
+        min-height: 42px;
+        padding: 8px 10px;
+        font-size: 12px;
+        white-space: nowrap;
     }
     .header-username { display: none; }
     .nav-label-full { display: none; }
@@ -291,6 +294,93 @@ input[type=file]::file-selector-button:hover { background: #f1f5fb; }
     .counter-search-field { grid-column: auto; }
     .counter-filter-actions { align-items: center; }
     .pagination { flex-wrap: wrap; }
+
+    .container {
+        width: 100%;
+        margin: 12px auto;
+        padding: 0 10px;
+    }
+    .card { padding: 14px; border-radius: 9px; }
+    .counter-list-heading { gap: 8px; }
+    .counter-list-heading h2 { margin-bottom: 6px; }
+    .counter-list-heading > .btn { min-height: 44px; }
+    .counter-status-summary { gap: 7px; margin: 12px 0; }
+    .counter-summary-card { min-height: 58px; padding: 9px 10px; font-size: 12px; }
+    .counter-summary-card strong { font-size: 18px; }
+    .verification-explainer { font-size: 12px; line-height: 1.45; }
+    .counter-filters { gap: 9px; padding: 11px; }
+    .counter-filters input,
+    .counter-filters select { min-height: 44px; font-size: 16px; }
+    .counter-filter-actions { display: grid; grid-template-columns: 1fr 1fr; }
+    .counter-filter-actions .btn { min-height: 44px; text-align: center; }
+
+    .counter-table-scroll { overflow: visible; }
+    .counter-table { display: block; min-width: 0; font-size: 13px; }
+    .counter-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        clip-path: inset(50%);
+    }
+    .counter-table tbody { display: grid; gap: 10px; }
+    .counter-table tr {
+        display: block;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        background: var(--card);
+        box-shadow: 0 1px 3px rgba(20, 35, 50, .06);
+    }
+    .counter-table td {
+        display: grid;
+        grid-template-columns: minmax(82px, 30%) minmax(0, 1fr);
+        gap: 8px;
+        padding: 9px 10px;
+        overflow-wrap: anywhere;
+        border-bottom: 1px solid #eef0f3;
+        text-align: left;
+    }
+    .counter-table td::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .counter-table td:last-child { border-bottom: 0; }
+    .counter-table td[data-label="Detail"] { display: flex; justify-content: flex-end; }
+    .counter-table td[data-label="Detail"]::before { display: none; }
+    .counter-table .badge { max-width: 100%; white-space: normal; }
+    .counter-table a.detail-btn { min-height: 40px; align-items: center; }
+
+    .counter-detail-header { gap: 8px; }
+    .counter-name { overflow-wrap: anywhere; font-size: 21px; }
+    .counter-ownership { display: grid; gap: 7px; font-size: 13px; }
+    .counter-metadata { line-height: 1.5; overflow-wrap: anywhere; }
+    .form-actions { flex-wrap: wrap; }
+    .btn { min-height: 42px; }
+    .counter-save-button,
+    .counter-delete-button,
+    .clear-history-actions .btn { min-height: 44px; }
+    .counter-add-form input,
+    .counter-add-form select,
+    .counter-add-form textarea,
+    .inspection-form input,
+    .inspection-form select,
+    .inspection-form textarea,
+    body:not(.map-page) input[type="text"],
+    body:not(.map-page) input[type="number"],
+    body:not(.map-page) input[type="date"],
+    body:not(.map-page) input[type="search"],
+    body:not(.map-page) select,
+    body:not(.map-page) textarea {
+        min-height: 44px;
+        font-size: 16px;
+    }
+    .inspection-form { padding: 12px; }
 }
 @media (min-width: 641px) {
     .nav-label-short { display: none; }

@@ -100,8 +100,8 @@
         <tbody>
             {% for counter in counters %}
             <tr>
-                <td><a href="{% url 'counter_detail' counter.pk %}">{{ counter.name }}</a></td>
-                <td>
+                <td data-label="Název"><a href="{% url 'counter_detail' counter.pk %}">{{ counter.name }}</a></td>
+                <td data-label="Ověření">
                     {% if not counter.last_inspection_date %}
                         <span class="inspection-state inspection-missing">Bez ověření</span>
                     {% else %}
@@ -116,9 +116,9 @@
                         {% endif %}
                     {% endif %}
                 </td>
-                <td><span class="badge {{ counter.status }}">{{ counter.get_status_display }}</span></td>
-                <td>{{ counter.client|default:"Bez klienta" }}<br><span class="table-muted">{{ counter.counter_type|default:"Typ neuveden" }}</span></td>
-                <td>
+                <td data-label="Provozní stav"><span class="badge {{ counter.status }}">{{ counter.get_status_display }}</span></td>
+                <td data-label="Klient / typ">{{ counter.client|default:"Bez klienta" }}<br><span class="table-muted">{{ counter.counter_type|default:"Typ neuveden" }}</span></td>
+                <td data-label="Další kontrola">
                     {% if counter.last_inspection_date and counter.next_inspection_date %}
                         {% if counter.next_inspection_date <= today %}<span class="inspection-state inspection-overdue">Po termínu</span>{% endif %}
                         {{ counter.next_inspection_date|date:"d.m.Y" }}
@@ -128,9 +128,9 @@
                         <span class="table-muted">Po ověření doplnit</span>
                     {% endif %}
                 </td>
-                <td>{{ counter.address|default:"—" }}</td>
-                <td class="counter-updated-at">{{ counter.updated_at|date:"d.m.Y H:i" }}</td>
-                <td><a class="btn btn-small detail-btn" href="{% url 'counter_detail' counter.pk %}">Otevřít</a></td>
+                <td data-label="Adresa">{{ counter.address|default:"—" }}</td>
+                <td data-label="Aktualizováno" class="counter-updated-at">{{ counter.updated_at|date:"d.m.Y H:i" }}</td>
+                <td data-label="Detail"><a class="btn btn-small detail-btn" href="{% url 'counter_detail' counter.pk %}">Otevřít</a></td>
             </tr>
             {% endfor %}
         </tbody>
