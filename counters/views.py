@@ -186,8 +186,7 @@ def counters_json(request):
 @staff_required
 def counter_add(request):
     """
-    Додавання нового лічильника.
-    Координати приходять з карти (клік по карті) як GET-параметри lat/lng.
+    Додавання нового лічильника: координати можна взяти з карти або ввести вручну.
     """
     initial = {}
     lat = request.GET.get('lat')
@@ -209,12 +208,14 @@ def counter_add(request):
             messages.success(request, f'Počítadlo „{counter.name}" bylo přidáno.')
             return redirect('counter_detail', pk=counter.pk)
     else:
-        if not lat or not lng:
-            messages.info(request, 'Nejprve klikněte na mapu na požadovaném místě a zadejte souřadnice.')
-            return redirect('map')
         form = CounterForm(initial=initial)
 
-    return render(request, 'counters/counter_form.html', {'form': form, 'is_new': True})
+    return render(request, 'counters/counter_form.html', {
+        'form': form,
+        'is_new': True,
+        'client_names': form.client_names,
+        'counter_type_names': form.counter_type_names,
+    })
 
 
 @staff_required

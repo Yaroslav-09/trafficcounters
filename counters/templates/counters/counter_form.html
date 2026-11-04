@@ -5,15 +5,27 @@
 {% block content %}
 <h2>Nové počítadlo</h2>
 <p class="page-intro">
-    Souřadnice jsou již vyplněny z mapy. Doplňte zbývající pole a uložte.
+    Vyplňte údaje a souřadnice. Klienta i typ můžete vybrat ze seznamu nebo rovnou napsat nový název.
 </p>
-<p class="page-intro">Seznam klientů a typů spravuje oprávněný uživatel v <a href="{% url 'admin:index' %}">administraci</a>.</p>
 
-<form method="post" novalidate>
+<form method="post" class="counter-add-form" novalidate>
     {% csrf_token %}
     {% for field in form %}
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
         {{ field }}
+        {% if field.name == 'client_name' %}
+            <datalist id="client-suggestions">
+                {% for name in client_names %}<option value="{{ name }}">{% endfor %}
+            </datalist>
+            <small class="form-hint">Nový název se po uložení přidá do seznamu klientů.</small>
+        {% elif field.name == 'counter_type_name' %}
+            <datalist id="counter-type-suggestions">
+                {% for name in counter_type_names %}<option value="{{ name }}">{% endfor %}
+            </datalist>
+            <small class="form-hint">Nový typ se po uložení přidá do seznamu typů.</small>
+        {% elif field.name == 'latitude' or field.name == 'longitude' %}
+            <small class="form-hint">Zadejte desetinné číslo, například 50.087451.</small>
+        {% endif %}
         {% if field.errors %}
             <div class="field-error">{{ field.errors|striptags }}</div>
         {% endif %}
@@ -21,7 +33,7 @@
 
     <div class="form-actions">
         <button type="submit" class="btn">Uložit počítadlo</button>
-        <a class="btn secondary" href="{% url 'map' %}">Zrušit</a>
+        <a class="btn secondary" href="{% url 'map' %}">Zpět na mapu</a>
     </div>
 </form>
 {% endblock %}

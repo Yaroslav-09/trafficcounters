@@ -87,8 +87,6 @@ document.addEventListener('DOMContentLoaded', function () {
         tapTolerance: 25,
         worldCopyJump: true,
         minZoom: isMobile ? 6 : 7,
-        maxBounds: czechiaBounds,
-        maxBoundsViscosity: 1.0
     });
 
     // Zjednodušený obrys České republiky (souřadnice jsou [lat, lng]).
@@ -107,18 +105,8 @@ document.addEventListener('DOMContentLoaded', function () {
         [48.816969, 17.101985]
     ];
 
-    function isWithinCzechia(lat, lng) {
-        var inside = false;
-        for (var i = 0, j = czechiaBorder.length - 1; i < czechiaBorder.length; j = i++) {
-            var yi = czechiaBorder[i][0];
-            var xi = czechiaBorder[i][1];
-            var yj = czechiaBorder[j][0];
-            var xj = czechiaBorder[j][1];
-            var crosses = ((yi > lat) !== (yj > lat)) &&
-                (lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi);
-            if (crosses) inside = !inside;
-        }
-        return inside;
+    function isValidCoordinates(lat, lng) {
+        return isFinite(lat) && isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
     }
 
     L.control.zoom({ position: isMobile ? 'bottomright' : 'topleft' }).addTo(map);
@@ -248,10 +236,6 @@ document.addEventListener('DOMContentLoaded', function () {
         navigator.geolocation.getCurrentPosition(function (position) {
             var lat = position.coords.latitude;
             var lng = position.coords.longitude;
-            if (!isWithinCzechia(lat, lng)) {
-                window.alert('Vaše poloha je mimo Českou republiku.');
-                return;
-            }
             if (userLocationMarker) map.removeLayer(userLocationMarker);
             userLocationMarker = L.circleMarker([lat, lng], {
                 radius: 8,
@@ -300,7 +284,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     map.on('click', function (e) {
         if (!addMode) return;
-        if (!isWithinCzechia(e.latlng.lat, e.latlng.lng)) return;
         var lat = e.latlng.lat.toFixed(6);
         var lng = e.latlng.lng.toFixed(6);
         window.location.href = "{% url 'counter_add' %}?lat=" + lat + "&lng=" + lng;
@@ -320,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 (data.counters || []).forEach(function (c) {
                     var lat = Number(c.lat);
                     var lng = Number(c.lng);
-                    if (!isFinite(lat) || !isFinite(lng) || !isWithinCzechia(lat, lng)) return;
+                    if (!isValidCoordinates(lat, lng)) return;
                     if (statusFilter && c.status !== statusFilter) return;
 
                     // circleMarker = bod na souřadnicích (ne HTML prvek přes mapu)

@@ -366,6 +366,13 @@ input[type=file]::file-selector-button:hover { background: #f1f5fb; }
     object-fit: cover;
 }
 .form-actions { margin-top: 20px; display: flex; gap: 10px; }
+.counter-add-form input:focus,
+.counter-add-form select:focus,
+.counter-add-form textarea:focus {
+    outline: 2px solid rgba(47, 111, 235, 0.2);
+    border-color: var(--accent);
+}
+.form-hint { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
 .login-error { color: var(--red); font-size: 14px; }
 .login-submit { margin-top: 20px; }
 
