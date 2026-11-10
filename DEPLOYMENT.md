@@ -1,4 +1,4 @@
-# Vývoj a bezplatné nasazení
+# Sčitače — vývoj a nasazení
 
 ## Aplikace
 

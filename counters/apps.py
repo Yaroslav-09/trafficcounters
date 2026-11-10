@@ -4,4 +4,4 @@ from django.apps import AppConfig
 class CountersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'counters'
-    verbose_name = 'Počítadla lidí'
+    verbose_name = 'Sčitače'

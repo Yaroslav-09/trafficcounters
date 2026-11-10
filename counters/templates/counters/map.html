@@ -1,7 +1,7 @@
 {% extends 'counters/base.html' %}
 {% load static %}
 
-{% block title %}Mapa počítadel{% endblock %}
+{% block title %}Mapa sčítačů{% endblock %}
 {% block body_class %}map-page{% endblock %}
 
 {% block full_content %}
@@ -26,11 +26,11 @@
             </div>
         </section>
         <button id="add-mode-btn" class="btn toolbar-btn">
-            <span class="btn-label-full">➕ Přidat počítadlo</span>
+            <span class="btn-label-full">➕ Přidat sčítač</span>
             <span class="btn-label-short">➕ Přidat</span>
         </button>
         <div id="add-hint">
-            Klepněte na mapu na místě, kde je počítadlo umístěno.
+            Klepněte na mapu na místě, kde je sčítač umístěn.
             <br><button id="cancel-add-mode" class="btn secondary cancel-add-mode-btn">Zrušit</button>
         </div>
         <div id="legend">
@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 refreshMapSize();
             })
             .catch(function (err) {
-                console.error('Nepodařilo se načíst počítadla:', err);
+                console.error('Nepodařilo se načíst sčítače:', err);
             });
     }
 

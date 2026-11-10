@@ -203,9 +203,9 @@ def counter_add(request):
                 counter=counter,
                 actor=request.user,
                 status=counter.status,
-                note='Počítadlo přidáno.',
+                note='Sčítač přidán.',
             )
-            messages.success(request, f'Počítadlo „{counter.name}" bylo přidáno.')
+            messages.success(request, f'Sčítač „{counter.name}" byl přidán.')
             return redirect('counter_detail', pk=counter.pk)
     else:
         form = CounterForm(initial=initial)
@@ -304,14 +304,14 @@ def counter_delete(request, pk):
     counter = get_object_or_404(Counter, pk=pk)
     name = counter.name
     counter.delete()
-    messages.success(request, f'Počítadlo „{name}" bylo smazáno.')
+    messages.success(request, f'Sčítač „{name}" byl smazán.')
     return redirect('map')
 
 
 @staff_required
 @require_POST
 def counter_clear_history(request, pk):
-    """Smaže historii událostí počítadla; samotné počítadlo zůstane."""
+    """Smaže historii událostí sčítače; samotný sčítač zůstane."""
     counter = get_object_or_404(Counter, pk=pk)
     # Dvojí potvrzení z formuláře — ochrana proti náhodnému odeslání
     if request.POST.get('confirm_clear') != 'yes':
@@ -321,6 +321,6 @@ def counter_clear_history(request, pk):
     deleted, _ = counter.events.all().delete()
     messages.success(
         request,
-        f'Historie počítadla „{counter.name}" byla smazána ({deleted} záznamů).'
+        f'Historie sčítače „{counter.name}" byla smazána ({deleted} záznamů).'
     )
     return redirect('counter_detail', pk=counter.pk)

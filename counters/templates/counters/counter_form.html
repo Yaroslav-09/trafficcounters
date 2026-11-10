@@ -1,9 +1,9 @@
 {% extends 'counters/base.html' %}
 
-{% block title %}Nové počítadlo{% endblock %}
+{% block title %}Nový sčítač{% endblock %}
 
 {% block content %}
-<h2>Nové počítadlo</h2>
+<h2>Nový sčítač</h2>
 <p class="page-intro">
     Vyplňte údaje a souřadnice. Klienta i typ můžete vybrat ze seznamu nebo rovnou napsat nový název.
 </p>
@@ -32,7 +32,7 @@
     {% endfor %}
 
     <div class="form-actions">
-        <button type="submit" class="btn">Uložit počítadlo</button>
+        <button type="submit" class="btn">Uložit sčítač</button>
         <a class="btn secondary" href="{% url 'map' %}">Zpět na mapu</a>
     </div>
 </form>

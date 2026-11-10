@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Počítadla lidí{% endblock %}</title>
+    <title>{% block title %}Sčitače{% endblock %}</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <link rel="stylesheet" href="{% static 'counters/css/base.css' %}" />
@@ -13,11 +13,11 @@
 <body class="{% block body_class %}{% endblock %}">
     {% if user.is_authenticated %}
     <header>
-        <a class="brand" href="{% url 'map' %}">📍 Počítadla lidí</a>
+        <a class="brand" href="{% url 'map' %}">📍 Sčitače</a>
         <nav class="header-nav">
             <a class="btn secondary" href="{% url 'map' %}">Mapa</a>
             <a class="btn secondary" href="{% url 'counter_list' %}">
-                <span class="nav-label-full">Všechna počítadla</span>
+                <span class="nav-label-full">Všechny sčítače</span>
                 <span class="nav-label-short">Seznam</span>
             </a>
             <span class="header-username">{{ user.get_full_name|default:user.username }}</span>

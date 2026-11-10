@@ -26,9 +26,9 @@
 </p>
 
 <form method="post" action="{% url 'counter_delete' counter.pk %}"
-      onsubmit="return confirm('Opravdu smazat toto počítadlo včetně historie?');" class="counter-delete-form">
+      onsubmit="return confirm('Opravdu smazat tento sčítač včetně historie?');" class="counter-delete-form">
     {% csrf_token %}
-    <button type="submit" class="btn danger counter-delete-button">Smazat počítadlo</button>
+    <button type="submit" class="btn danger counter-delete-button">Smazat sčítač</button>
 </form>
 
 <hr class="section-divider">
@@ -92,8 +92,8 @@
 {% if events %}
 <div id="clear-history-panel" class="clear-history-panel" hidden>
     <p class="clear-history-confirmation">
-        Opravdu smazat <strong>celou historii</strong> tohoto počítadla?
-        Počítadlo zůstane, ale záznamy už nepůjde obnovit.
+        Opravdu smazat <strong>celou historii</strong> tohoto sčítače?
+        Sčítač zůstane, ale záznamy už nepůjde obnovit.
     </p>
     <form method="post" action="{% url 'counter_clear_history' counter.pk %}" id="clear-history-form">
         {% csrf_token %}
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             return;
         }
-        if (!confirm('Poslední potvrzení: smazat historii počítadla „{{ counter.name|escapejs }}"?')) {
+        if (!confirm('Poslední potvrzení: smazat historii sčítače „{{ counter.name|escapejs }}"?')) {
             e.preventDefault();
         }
     });

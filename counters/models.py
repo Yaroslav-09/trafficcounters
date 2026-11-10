@@ -36,7 +36,7 @@ class CounterType(models.Model):
 
 
 class Counter(models.Model):
-    """Фізичний лічильник людей, встановлений десь на місцевості."""
+    """Fyzický sčítač lidí umístěný v terénu."""
 
     STATUS_WORKING = 'working'
     STATUS_DEFECT = 'defect'
@@ -74,8 +74,8 @@ class Counter(models.Model):
     updated_at = models.DateTimeField('Aktualizováno', auto_now=True)
 
     class Meta:
-        verbose_name = 'Počítadlo'
-        verbose_name_plural = 'Počítadla'
+        verbose_name = 'Sčítač'
+        verbose_name_plural = 'Sčítače'
         ordering = ['name']
 
     def __str__(self):
@@ -91,13 +91,12 @@ class Counter(models.Model):
 
 class CounterEvent(models.Model):
     """
-    Запис в історії лічильника: зміна статусу з нотаткою.
-    Кожна зміна статусу (додали дефект, полагодили, знову ввели в роботу)
-    зберігається окремим рядком — так завжди видно повну історію обслуговування.
+    Záznam v historii sčítače: změna stavu s poznámkou.
+    Každá změna stavu se ukládá zvlášť, aby byla vidět celá historie servisu.
     """
 
     counter = models.ForeignKey(
-        Counter, related_name='events', on_delete=models.CASCADE, verbose_name='Počítadlo'
+        Counter, related_name='events', on_delete=models.CASCADE, verbose_name='Sčítač'
     )
     status = models.CharField(
         'Stav', max_length=20, choices=Counter.STATUS_CHOICES

@@ -41,7 +41,7 @@ class CounterForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 3}),
         }
         labels = {
-            'name': 'Název počítadla',
+            'name': 'Název sčítače',
             'address': 'Adresa / orientační bod',
             'latitude': 'Zeměpisná šířka',
             'longitude': 'Zeměpisná délka',
